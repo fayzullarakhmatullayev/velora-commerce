@@ -8,16 +8,16 @@ type OrderItem = Database['public']['Tables']['order_items']['Row']
 
 const route = useRoute()
 const supabase = useSupabase()
-const user = useSupabaseUser()
 
 const { data, pending } = useAsyncData(`order-${route.params.id}`, async () => {
-  if (!user.value?.id) return null
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user?.id) return null
 
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .select('*')
     .eq('id', route.params.id as string)
-    .eq('user_id', user.value.id)
+    .eq('user_id', session.user.id)
     .single()
 
   if (orderError) throw orderError

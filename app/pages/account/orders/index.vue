@@ -7,20 +7,34 @@ useSeoMeta({ title: 'My Orders — Velora Commerce' })
 type Order = Database['public']['Tables']['orders']['Row']
 
 const supabase = useSupabase()
-const user = useSupabaseUser()
 
-const { data: orders, pending } = useAsyncData('account-orders', async () => {
-  if (!user.value?.id) return [] as Order[]
+const { data: orders, pending, refresh } = useAsyncData(
+  'account-orders',
+  async () => {
+    // Always resolve from the live client session so the JWT is guaranteed
+    // to be in the Authorization header — avoids RLS 403 on cold visits.
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user?.id) return [] as Order[]
 
-  const { data, error } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('user_id', user.value.id)
-    .order('created_at', { ascending: false })
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
 
-  if (error) throw error
-  return data as Order[]
-}, { default: () => [] as Order[], watch: [user] })
+    if (error) throw error
+    return data as Order[]
+  },
+  {
+    default: () => [] as Order[],
+    // Return undefined (not null) so Nuxt 4 treats it as "no cache" and
+    // always runs the fetch — null would be used as the cached value itself.
+    getCachedData: () => undefined,
+  },
+)
+
+// Re-fetch when the page is visited (covers back-navigation after checkout)
+onMounted(refresh)
 
 const statusColor: Record<string, string> = {
   pending: 'warning',

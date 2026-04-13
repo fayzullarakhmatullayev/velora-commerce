@@ -30,7 +30,7 @@ const accountItems = computed(() => [
     {
       label: t('nav.logout'),
       icon: 'heroicons:arrow-right-on-rectangle',
-      click: logout,
+      onSelect: logout,
     },
   ],
 ])

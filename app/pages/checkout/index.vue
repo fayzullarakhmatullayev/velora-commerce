@@ -132,8 +132,13 @@ async function mountStripeElement() {
 
   paymentElement = elements.create('payment', {
     layout: 'accordion',
-    // Only show card — suppress warnings for unactivated methods
     paymentMethodOrder: ['card'],
+    // Disable wallet buttons — Apple Pay requires domain registration,
+    // Google Pay requires activation. Cards work without either.
+    wallets: {
+      applePay: 'never',
+      googlePay: 'never',
+    },
   })
 
   if (paymentElRef.value) {
@@ -174,7 +179,12 @@ async function pay() {
 
 // ── Create order in Supabase after payment succeeds ───────────────────────────
 async function placeOrder(stripeIntentId: string) {
-  if (!user.value?.id) {
+  // Always resolve the session fresh — user.value can go stale if the
+  // access token was silently refreshed while Stripe was processing.
+  const { data: { session } } = await supabase.auth.getSession()
+  const userId = session?.user?.id
+
+  if (!userId) {
     toast.add({ title: 'Session expired. Please log in again.', color: 'error' })
     navigateTo('/auth/login')
     return
@@ -185,7 +195,7 @@ async function placeOrder(stripeIntentId: string) {
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
-      user_id: user.value.id,
+      user_id: userId,
       status: 'paid',
       payment_status: 'paid',
       subtotal: cartStore.subtotal,

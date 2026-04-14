@@ -9,10 +9,10 @@ const page = ref(1)
 // Reset page when filters change
 watch([status, search], () => { page.value = 1 })
 
+const toast = useToast()
 const { orders, total, totalPages, pending, refresh } = useAdminOrders({ status, search, page })
 
-
-const statusOptions = [
+const filterOptions = [
   { label: 'All Statuses', value: 'all' },
   { label: 'Pending', value: 'pending' },
   { label: 'Paid', value: 'paid' },
@@ -23,6 +23,8 @@ const statusOptions = [
   { label: 'Refunded', value: 'refunded' },
 ]
 
+const rowStatusOptions = filterOptions.slice(1) // all except "All Statuses"
+
 const statusColor: Record<string, string> = {
   pending: 'warning',
   paid: 'success',
@@ -31,6 +33,22 @@ const statusColor: Record<string, string> = {
   delivered: 'success',
   cancelled: 'error',
   refunded: 'neutral',
+}
+
+// ── Inline status update ───────────────────────────────────────────────────────
+const updatingId = ref<string | null>(null)
+
+async function updateStatus(orderId: string, newStatus: string) {
+  updatingId.value = orderId
+  try {
+    await adminUpdateOrderStatus(orderId, newStatus)
+    toast.add({ title: 'Status updated', color: 'success', icon: 'heroicons:check-circle' })
+    await refresh()
+  } catch (err: any) {
+    toast.add({ title: 'Failed to update', description: err.message, color: 'error', icon: 'heroicons:x-circle' })
+  } finally {
+    updatingId.value = null
+  }
 }
 
 function formatPrice(n: number) {
@@ -80,7 +98,7 @@ const pageTo = computed(() => Math.min(page.value * 20, total.value))
         <!-- Status filter -->
         <USelect
           v-model="status"
-          :items="statusOptions"
+          :items="filterOptions"
           size="sm"
           class="w-full sm:w-48"
         />
@@ -144,9 +162,21 @@ const pageTo = computed(() => Math.min(page.value * 20, total.value))
                 </span>
               </td>
               <td class="px-5 py-3.5">
-                <UBadge :color="(statusColor[order.status] as any) ?? 'neutral'" variant="subtle" size="sm">
-                  {{ order.status }}
-                </UBadge>
+                <div class="flex items-center gap-1.5">
+                  <USelect
+                    :model-value="order.status"
+                    :items="rowStatusOptions"
+                    size="xs"
+                    class="w-32"
+                    :disabled="updatingId === order.id"
+                    @update:model-value="updateStatus(order.id, $event as string)"
+                  />
+                  <UIcon
+                    v-if="updatingId === order.id"
+                    name="heroicons:arrow-path"
+                    class="size-3.5 text-zinc-400 animate-spin shrink-0"
+                  />
+                </div>
               </td>
               <td class="px-5 py-3.5">
                 <UBadge

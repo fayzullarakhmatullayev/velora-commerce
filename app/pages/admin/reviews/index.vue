@@ -195,7 +195,7 @@ const statusOptions = [
                 </span>
                 <span class="text-zinc-300 dark:text-zinc-600">·</span>
                 <NuxtLink
-                  :to="`/admin/products`"
+                  :to="review.product_id ? `/admin/products/${review.product_id}` : '/admin/products'"
                   class="text-xs text-primary-600 dark:text-primary-400 hover:underline truncate max-w-48"
                 >
                   {{ (review as any).productTitle }}

@@ -5,6 +5,7 @@ const route = useRoute()
 const { t } = useI18n()
 const { addProduct } = useCart()
 const { store: wishlistStore, toggleProduct } = useWishlist()
+const user = useSupabaseUser()
 
 const slug = computed(() => route.params.slug as string)
 const { product, variants, pending, title, description, isOnSale, discountPercent, inStock } =
@@ -50,6 +51,37 @@ function handleWishlist() {
 // 404 guard
 if (!pending.value && !product.value) {
   throw createError({ statusCode: 404, statusMessage: 'Product not found' })
+}
+
+// ── Reviews ──────────────────────────────────────────────────────────────────
+const productId = computed(() => product.value?.id)
+const { reviews, userReview, avgRating, pending: reviewsPending, refresh: refreshReviews } = useProductReviews(productId)
+const { submitReview, submitting } = useSubmitReview()
+
+const reviewRating = ref(0)
+const reviewHover = ref(0)
+const reviewComment = ref('')
+const showForm = ref(false)
+
+const canReview = computed(() => !!user.value && !userReview.value)
+
+async function handleSubmitReview() {
+  if (!product.value || reviewRating.value === 0) return
+  await submitReview(product.value.id, reviewRating.value, reviewComment.value, () => {
+    reviewRating.value = 0
+    reviewComment.value = ''
+    showForm.value = false
+    refreshReviews()
+  })
+}
+
+function initials(name: string | null) {
+  if (!name) return '?'
+  return name.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
+}
+
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 </script>
 
@@ -234,6 +266,199 @@ if (!pending.value && !product.value) {
 
         </div>
       </div>
+
+      <!-- ── Reviews section ─────────────────────────────────────────── -->
+      <div class="mt-16 border-t border-zinc-100 dark:border-zinc-800 pt-12">
+
+        <!-- Header row -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div>
+            <h2 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">
+              Reviews
+            </h2>
+            <div class="flex items-center gap-2 mt-1">
+              <!-- Average stars -->
+              <div class="flex items-center gap-0.5">
+                <UIcon
+                  v-for="star in 5"
+                  :key="star"
+                  name="heroicons:star-solid"
+                  class="size-4"
+                  :class="star <= Math.round(avgRating) ? 'text-amber-400' : 'text-zinc-200 dark:text-zinc-700'"
+                />
+              </div>
+              <span v-if="reviews.length" class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                {{ avgRating.toFixed(1) }}
+              </span>
+              <span class="text-sm text-zinc-400">
+                {{ reviews.length }} review{{ reviews.length !== 1 ? 's' : '' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Write review button -->
+          <div>
+            <UButton
+              v-if="canReview && !showForm"
+              icon="heroicons:pencil-square"
+              size="sm"
+              variant="outline"
+              color="neutral"
+              @click="showForm = true"
+            >
+              Write a Review
+            </UButton>
+            <NuxtLink v-else-if="!user" to="/auth/login">
+              <UButton icon="heroicons:pencil-square" size="sm" variant="outline" color="neutral">
+                Log in to review
+              </UButton>
+            </NuxtLink>
+          </div>
+        </div>
+
+        <!-- Own pending review notice -->
+        <div
+          v-if="userReview && !userReview.is_approved"
+          class="mb-6 flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-4 py-3"
+        >
+          <UIcon name="heroicons:clock" class="size-5 text-amber-500 shrink-0 mt-0.5" />
+          <div class="text-sm">
+            <p class="font-medium text-amber-800 dark:text-amber-300">Your review is pending approval</p>
+            <p class="text-amber-600 dark:text-amber-400 mt-0.5">
+              <span class="flex gap-0.5 items-center">
+                <UIcon
+                  v-for="s in 5"
+                  :key="s"
+                  name="heroicons:star-solid"
+                  class="size-3"
+                  :class="s <= userReview.rating ? 'text-amber-400' : 'text-amber-200'"
+                />
+              </span>
+              {{ userReview.comment ?? 'No comment' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Write review form -->
+        <div
+          v-if="showForm && canReview"
+          class="mb-8 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-5 space-y-4"
+        >
+          <h3 class="font-semibold text-zinc-900 dark:text-white">Your Review</h3>
+
+          <!-- Star picker -->
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium text-zinc-600 dark:text-zinc-300">Rating <span class="text-red-500">*</span></label>
+            <div class="flex items-center gap-1">
+              <button
+                v-for="star in 5"
+                :key="star"
+                type="button"
+                class="p-0.5 transition-transform hover:scale-110"
+                @mouseenter="reviewHover = star"
+                @mouseleave="reviewHover = 0"
+                @click="reviewRating = star"
+              >
+                <UIcon
+                  name="heroicons:star-solid"
+                  class="size-8 transition-colors"
+                  :class="star <= (reviewHover || reviewRating) ? 'text-amber-400' : 'text-zinc-200 dark:text-zinc-700'"
+                />
+              </button>
+              <span v-if="reviewRating" class="ml-2 text-sm font-medium text-zinc-500">
+                {{ ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'][reviewRating] }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Comment -->
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium text-zinc-600 dark:text-zinc-300">Comment <span class="text-zinc-400 font-normal">(optional)</span></label>
+            <UTextarea
+              v-model="reviewComment"
+              placeholder="Share your experience with this product…"
+              :rows="4"
+              :ui="{ base: 'w-full' }"
+            />
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-2">
+            <UButton
+              :disabled="reviewRating === 0 || submitting"
+              :loading="submitting"
+              @click="handleSubmitReview"
+            >
+              Submit Review
+            </UButton>
+            <UButton color="neutral" variant="ghost" @click="showForm = false; reviewRating = 0; reviewComment = ''">
+              Cancel
+            </UButton>
+          </div>
+        </div>
+
+        <!-- Reviews list -->
+        <div v-if="reviewsPending" class="space-y-4">
+          <div v-for="i in 3" :key="i" class="flex gap-4">
+            <USkeleton class="size-10 rounded-full shrink-0" />
+            <div class="flex-1 space-y-2">
+              <USkeleton class="h-4 w-32" />
+              <USkeleton class="h-4 w-full" />
+              <USkeleton class="h-4 w-3/4" />
+            </div>
+          </div>
+        </div>
+
+        <div v-else-if="!reviews.length && !reviewsPending" class="flex flex-col items-center py-16 text-center">
+          <UIcon name="heroicons:star" class="size-10 text-zinc-200 dark:text-zinc-700 mb-3" />
+          <p class="text-zinc-500 dark:text-zinc-400">No reviews yet. Be the first!</p>
+        </div>
+
+        <div v-else class="space-y-6">
+          <div
+            v-for="review in reviews"
+            :key="review.id"
+            class="flex gap-4 pb-6 border-b border-zinc-100 dark:border-zinc-800 last:border-0 last:pb-0"
+          >
+            <!-- Avatar -->
+            <div class="size-10 rounded-full overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+              <img
+                v-if="review.profile.avatar_url"
+                :src="review.profile.avatar_url"
+                class="size-full object-cover"
+              />
+              <span v-else class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                {{ initials(review.profile.full_name) }}
+              </span>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-1.5">
+                <span class="font-medium text-sm text-zinc-900 dark:text-white">
+                  {{ review.profile.full_name ?? 'Anonymous' }}
+                </span>
+                <span class="text-zinc-300 dark:text-zinc-600">·</span>
+                <span class="text-xs text-zinc-400">{{ formatDate(review.created_at) }}</span>
+              </div>
+              <div class="flex items-center gap-0.5 mb-2">
+                <UIcon
+                  v-for="star in 5"
+                  :key="star"
+                  name="heroicons:star-solid"
+                  class="size-3.5"
+                  :class="star <= review.rating ? 'text-amber-400' : 'text-zinc-200 dark:text-zinc-700'"
+                />
+              </div>
+              <p v-if="review.comment" class="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                {{ review.comment }}
+              </p>
+              <p v-else class="text-sm text-zinc-400 italic">No comment</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
     </template>
   </div>
 </template>

@@ -4,13 +4,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import type { Database } from '~/types/database.types'
 
+export type ProductRow = Database['public']['Tables']['products']['Row']
 export type ProductVariantRow = Database['public']['Tables']['product_variants']['Row']
 
 export const useProduct = (slug: MaybeRef<string>) => {
   const supabase = useSupabase()
   const { locale } = useI18n()
 
-  const { data: product, pending, error } = useAsyncData(
+  const { data: product, pending, error } = useAsyncData<ProductRow>(
     `product-${toValue(slug)}`,
     async () => {
       // Find by English slug in JSONB
@@ -26,7 +27,7 @@ export const useProduct = (slug: MaybeRef<string>) => {
     },
   )
 
-  const { data: variants } = useAsyncData(
+  const { data: variants } = useAsyncData<ProductVariantRow[]>(
     `product-variants-${toValue(slug)}`,
     async () => {
       if (!product.value) return []
@@ -34,6 +35,7 @@ export const useProduct = (slug: MaybeRef<string>) => {
         .from('product_variants')
         .select('*')
         .eq('product_id', product.value.id)
+      
       return data ?? []
     },
     { watch: [product] },

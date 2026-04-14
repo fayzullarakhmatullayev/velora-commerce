@@ -82,7 +82,7 @@ export const useProducts = (options: MaybeRef<UseProductsOptions> = {}) => {
 
       if (error) throw error
 
-      return { products: data ?? [], total: count ?? 0 }
+      return { products: data as ProductRow[] ?? [], total: count ?? 0 }
     },
     {
       watch: [() => toValue(options)],

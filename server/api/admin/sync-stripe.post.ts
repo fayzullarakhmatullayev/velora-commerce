@@ -22,12 +22,12 @@ export default defineEventHandler(async (event) => {
 
   const stripe = new Stripe(config.stripeSecretKey)
 
-  // Retrieve PI with its charges so we can detect refunds
+  // Retrieve PI with latest_charge expanded so we can detect refunds
   const intent = await stripe.paymentIntents.retrieve(paymentIntentId, {
-    expand: ['charges.data'],
+    expand: ['latest_charge'],
   })
 
-  const charge = (intent as any).charges?.data?.[0] as Stripe.Charge | undefined
+  const charge = intent.latest_charge as Stripe.Charge | null | undefined
 
   // Derive canonical statuses from Stripe state
   let payment_status: string

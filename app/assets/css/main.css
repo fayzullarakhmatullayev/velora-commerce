@@ -110,11 +110,23 @@
 
   /* Premium gradient text */
   .gradient-text {
-    background: linear-gradient(135deg, var(--ui-primary) 0%, oklch(65% 0.22 310) 100%);
+    background: linear-gradient(135deg, oklch(55% 0.22 10) 0%, oklch(70% 0.18 350) 50%, oklch(60% 0.2 25) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  /* Floating animation for hero elements */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes float-delayed {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+  .animate-float { animation: float 4s ease-in-out infinite; }
+  .animate-float-delayed { animation: float-delayed 5s ease-in-out infinite 1s; }
 
   /* Glassmorphism panel */
   .glass {

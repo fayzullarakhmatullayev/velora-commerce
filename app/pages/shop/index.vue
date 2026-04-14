@@ -14,6 +14,7 @@ const filters = ref({
   sort: (route.query.sort as string) || 'newest',
   minPrice: (route.query.min as string) || '',
   maxPrice: (route.query.max as string) || '',
+  onSale: route.query.sale === 'true',
 })
 
 const search = ref((route.query.q as string) || '')
@@ -29,6 +30,7 @@ const urlQuery = computed(() => ({
   ...(filters.value.sort !== 'newest' ? { sort: filters.value.sort } : {}),
   ...(filters.value.minPrice ? { min: filters.value.minPrice } : {}),
   ...(filters.value.maxPrice ? { max: filters.value.maxPrice } : {}),
+  ...(filters.value.onSale ? { sale: 'true' } : {}),
   ...(searchDebounced.value ? { q: searchDebounced.value } : {}),
   ...(page.value > 1 ? { page: String(page.value) } : {}),
 }))
@@ -45,6 +47,7 @@ watch(
     () => filters.value.sort,
     () => filters.value.minPrice,
     () => filters.value.maxPrice,
+    () => filters.value.onSale,
     searchDebounced,
   ],
   () => {
@@ -59,6 +62,7 @@ const queryOptions = computed(() => ({
   search: searchDebounced.value || null,
   minPrice: filters.value.minPrice || null,
   maxPrice: filters.value.maxPrice || null,
+  onSale: filters.value.onSale || undefined,
   page: page.value,
 }))
 

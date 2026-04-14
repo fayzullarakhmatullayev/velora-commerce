@@ -198,43 +198,49 @@ const heroPrice  = computed(() => featuredProducts.value[0]?.price ?? 29)
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 
         <!-- Banner 1: Sale -->
-        <div class="relative overflow-hidden rounded-3xl min-h-56 flex flex-col justify-end p-8"
-          style="background: linear-gradient(135deg, oklch(55% 0.22 10) 0%, oklch(60% 0.2 25) 100%)">
-          <div class="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10" aria-hidden="true" />
+        <NuxtLink
+          to="/shop?sale=true"
+          class="group relative overflow-hidden rounded-3xl min-h-56 flex flex-col justify-end p-8"
+          style="background: linear-gradient(135deg, oklch(55% 0.22 10) 0%, oklch(60% 0.2 25) 100%)"
+        >
+          <div class="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 group-hover:scale-110 transition-transform duration-500" aria-hidden="true" />
           <div class="absolute right-8 top-8 h-24 w-24 rounded-full bg-white/8" aria-hidden="true" />
           <div class="absolute -right-4 bottom-0 h-32 w-32 rounded-full bg-black/10" aria-hidden="true" />
+          <!-- Sale tag icon -->
+          <div class="absolute top-6 right-6 text-5xl opacity-20 group-hover:opacity-30 group-hover:rotate-12 transition-all duration-500">🏷️</div>
           <div class="relative z-10">
             <p class="text-xs font-bold uppercase tracking-widest text-white/70 mb-2">Limited Time</p>
             <h3 class="font-display text-3xl font-bold text-white mb-5 leading-tight">
               Summer Sale<br />Up to 50% Off
             </h3>
-            <NuxtLink to="/shop">
-              <button class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-zinc-900 hover:bg-zinc-100 transition-colors shadow-lg">
-                Shop Now
-                <UIcon name="heroicons:arrow-right" class="size-4" />
-              </button>
-            </NuxtLink>
+            <span class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-zinc-900 group-hover:bg-zinc-100 transition-colors shadow-lg">
+              Shop Sale
+              <UIcon name="heroicons:arrow-right" class="size-4 group-hover:translate-x-0.5 transition-transform" />
+            </span>
           </div>
-        </div>
+        </NuxtLink>
 
         <!-- Banner 2: New Arrivals -->
-        <div class="relative overflow-hidden rounded-3xl min-h-56 flex flex-col justify-end p-8 bg-zinc-900 dark:bg-zinc-800">
-          <div class="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-rose-500/10" aria-hidden="true" />
+        <NuxtLink
+          to="/shop?sort=newest"
+          class="group relative overflow-hidden rounded-3xl min-h-56 flex flex-col justify-end p-8 bg-zinc-900 dark:bg-zinc-800"
+        >
+          <div class="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-rose-500/10 group-hover:scale-110 transition-transform duration-500" aria-hidden="true" />
           <div class="absolute right-8 top-8 h-24 w-24 rounded-full bg-rose-400/8" aria-hidden="true" />
-          <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_oklch(40%_0.08_350)_0%,_transparent_70%)]" aria-hidden="true" />
+          <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,oklch(40%_0.08_350)_0%,transparent_70%)]" aria-hidden="true" />
+          <!-- Sparkle icon -->
+          <div class="absolute top-6 right-6 text-5xl opacity-20 group-hover:opacity-30 group-hover:rotate-12 transition-all duration-500">✨</div>
           <div class="relative z-10">
             <p class="text-xs font-bold uppercase tracking-widest text-rose-400 mb-2">Just Dropped</p>
             <h3 class="font-display text-3xl font-bold text-white mb-5 leading-tight">
               New Arrivals<br />This Season
             </h3>
-            <NuxtLink to="/shop">
-              <button class="inline-flex items-center gap-2 rounded-full bg-rose-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-rose-600 transition-colors shadow-lg shadow-rose-500/30">
-                Explore New
-                <UIcon name="heroicons:arrow-right" class="size-4" />
-              </button>
-            </NuxtLink>
+            <span class="inline-flex items-center gap-2 rounded-full bg-rose-500 px-5 py-2.5 text-sm font-semibold text-white group-hover:bg-rose-600 transition-colors shadow-lg shadow-rose-500/30">
+              Explore New
+              <UIcon name="heroicons:arrow-right" class="size-4 group-hover:translate-x-0.5 transition-transform" />
+            </span>
           </div>
-        </div>
+        </NuxtLink>
       </div>
     </section>
 
@@ -250,32 +256,48 @@ const heroPrice  = computed(() => featuredProducts.value[0]?.price ?? 29)
           </h2>
         </div>
 
-        <div v-if="!categories.length" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          <div v-for="i in 6" :key="i" class="flex flex-col items-center gap-3 rounded-2xl bg-white dark:bg-zinc-900 p-6">
-            <VSkeleton class="h-12 w-12" rounded="full" />
-            <VSkeleton class="h-3 w-16" rounded="md" />
-          </div>
+        <!-- Skeletons -->
+        <div v-if="!categories.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <div v-for="i in 6" :key="i" class="rounded-2xl overflow-hidden aspect-square bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
         </div>
 
+        <!-- Category cards -->
         <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <NuxtLink
             v-for="cat in categories"
             :key="cat.id"
             :to="`/shop?category=${cat.id}`"
-            class="group flex flex-col items-center gap-3 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 hover:border-rose-300 dark:hover:border-rose-700 hover:shadow-lg hover:shadow-rose-500/5 hover:-translate-y-1 transition-all duration-200"
+            class="group relative overflow-hidden rounded-2xl aspect-square"
           >
-            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 dark:bg-rose-950/50 group-hover:bg-rose-100 dark:group-hover:bg-rose-900/50 transition-colors">
-              <img
-                v-if="cat.image"
-                :src="cat.image"
-                :alt="getCategoryName(cat)"
-                class="h-8 w-8 object-contain"
-              />
-              <UIcon v-else name="heroicons:squares-2x2" class="size-6 text-rose-500" />
+            <!-- Image background -->
+            <img
+              v-if="cat.image"
+              :src="cat.image"
+              :alt="getCategoryName(cat)"
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+            <!-- Gradient fallback -->
+            <div
+              v-else
+              class="absolute inset-0 bg-linear-to-br from-rose-100 via-pink-50 to-rose-200 dark:from-rose-950 dark:via-pink-950 dark:to-rose-900 transition-transform duration-500 group-hover:scale-105"
+            >
+              <div class="absolute inset-0 flex items-center justify-center">
+                <UIcon name="heroicons:squares-2x2" class="size-10 text-rose-300 dark:text-rose-700" />
+              </div>
             </div>
-            <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300 text-center group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
-              {{ getCategoryName(cat) }}
-            </span>
+
+            <!-- Dark gradient overlay -->
+            <div class="absolute inset-0 bg-linear-to-t from-zinc-900/75 via-zinc-900/20 to-zinc-900/5 group-hover:from-zinc-900/85 transition-colors duration-300" />
+
+            <!-- Label -->
+            <div class="absolute inset-x-0 bottom-0 p-3.5">
+              <p class="text-sm font-bold text-white leading-snug drop-shadow-sm">
+                {{ getCategoryName(cat) }}
+              </p>
+            </div>
+
+            <!-- Hover shine -->
+            <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-linear-to-tr from-transparent via-white/5 to-white/10" />
           </NuxtLink>
         </div>
       </div>

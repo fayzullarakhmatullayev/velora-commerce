@@ -5,6 +5,7 @@ const props = defineProps<{
     sort: string
     minPrice: string
     maxPrice: string
+    onSale: boolean
   }
 }>()
 
@@ -15,14 +16,12 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { categories, getCategoryName } = useCategories()
 
-// Always read from props — no local copy, no watchers, no ping-pong loops.
-// Every interaction calls update() which emits the full new object to the parent.
 function update(patch: Partial<typeof props.modelValue>) {
   emit('update:modelValue', { ...props.modelValue, ...patch })
 }
 
 function clearFilters() {
-  emit('update:modelValue', { categoryId: null, sort: 'newest', minPrice: '', maxPrice: '' })
+  emit('update:modelValue', { categoryId: null, sort: 'newest', minPrice: '', maxPrice: '', onSale: false })
 }
 
 const sortOptions = computed(() => [
@@ -37,12 +36,38 @@ const hasActiveFilters = computed(
     props.modelValue.categoryId ||
     props.modelValue.sort !== 'newest' ||
     props.modelValue.minPrice ||
-    props.modelValue.maxPrice,
+    props.modelValue.maxPrice ||
+    props.modelValue.onSale,
 )
 </script>
 
 <template>
   <div class="space-y-6">
+    <!-- On Sale toggle -->
+    <button
+      class="flex w-full items-center justify-between rounded-xl border px-4 py-3 text-sm font-semibold transition-all"
+      :class="modelValue.onSale
+        ? 'border-rose-400 bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300'
+        : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-600'"
+      @click="update({ onSale: !modelValue.onSale })"
+    >
+      <span class="flex items-center gap-2">
+        <span class="text-base">🏷️</span>
+        On Sale Only
+      </span>
+      <div
+        class="h-5 w-9 rounded-full transition-colors relative"
+        :class="modelValue.onSale ? 'bg-rose-500' : 'bg-zinc-200 dark:bg-zinc-700'"
+      >
+        <div
+          class="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform"
+          :class="modelValue.onSale ? 'translate-x-4' : 'translate-x-0.5'"
+        />
+      </div>
+    </button>
+
+    <USeparator />
+
     <!-- Sort -->
     <div class="space-y-2">
       <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">

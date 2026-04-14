@@ -8,6 +8,7 @@ export type ProductRow = Database['public']['Tables']['products']['Row']
 
 export interface UseProductsOptions {
   featured?: boolean
+  onSale?: boolean
   categoryId?: string | null
   search?: string | null
   sort?: string | null
@@ -37,6 +38,11 @@ export const useProducts = (options: MaybeRef<UseProductsOptions> = {}) => {
 
       if (opts.featured) {
         query = query.eq('is_featured', true)
+      }
+
+      if (opts.onSale) {
+        // Products with a compare_price set are considered "on sale"
+        query = query.not('compare_price', 'is', null)
       }
 
       if (opts.categoryId) {

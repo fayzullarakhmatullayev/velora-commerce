@@ -21,7 +21,7 @@ export const useAdminOrders = (opts?: {
   const page = opts?.page ?? ref(1)
 
   const { data, pending, refresh } = useAsyncData(
-    'admin-orders-list',
+    () => `admin-orders-${status.value}-${search.value}-${page.value}`,
     async () => {
       let query = supabase
         .from('orders')
@@ -32,8 +32,9 @@ export const useAdminOrders = (opts?: {
         query = query.eq('status', status.value)
       }
       if (search.value.trim()) {
-        // match order ID prefix (case-insensitive)
-        query = query.ilike('id', `${search.value.trim()}%`)
+        // strip leading # if user typed the display format (e.g. #A1B2C3D4)
+        const q = search.value.trim().replace(/^#/, '')
+        query = query.ilike('id', `${q}%`)
       }
 
       const from = (page.value - 1) * PAGE_SIZE

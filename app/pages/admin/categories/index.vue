@@ -381,19 +381,16 @@ function catName(cat: Category) {
               />
             </UFormField>
 
-            <!-- Image URL -->
-            <UFormField label="Image URL">
-              <UInput
-                v-model="draft.image"
-                placeholder="https://…"
-                size="sm"
-                :ui="{ root: 'relative flex items-center w-full' }"
+            <!-- Image upload -->
+            <div class="col-span-2">
+              <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Image</p>
+              <AdminImageUpload
+                :model-value="draft.image"
+                :index="0"
+                bucket="categories"
+                @update:model-value="draft.image = $event"
+                @remove="draft.image = ''"
               />
-            </UFormField>
-
-            <!-- Image preview -->
-            <div v-if="draft.image" class="col-span-2">
-              <img :src="draft.image" class="h-24 w-full object-cover rounded-lg" @error="($event.target as HTMLImageElement).style.display='none'" />
             </div>
 
             <!-- Active -->

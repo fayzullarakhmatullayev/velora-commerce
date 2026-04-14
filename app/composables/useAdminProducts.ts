@@ -22,7 +22,7 @@ export const useAdminProducts = (opts?: {
   const page = opts?.page ?? ref(1)
 
   const { data, pending, refresh } = useAsyncData(
-    'admin-products-list',
+    () => `admin-products-${search.value}-${statusFilter.value}-${page.value}`,
     async () => {
       let query = supabase
         .from('products')

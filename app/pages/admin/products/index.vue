@@ -12,9 +12,6 @@ watch([search, statusFilter], () => { page.value = 1 })
 
 const { products, total, totalPages, pending, refresh } = useAdminProducts({ search, statusFilter, page })
 
-// Explicit watch — more reliable than useAsyncData's built-in watch in Nuxt 4
-watch([search, statusFilter, page], () => refresh())
-
 const toast = useToast()
 
 // ── Status toggle ─────────────────────────────────────────────────────────────
@@ -191,7 +188,7 @@ const pageTo = computed(() => Math.min(page.value * 20, total.value))
                     <UIcon v-else name="heroicons:photo" class="size-full p-2 text-zinc-400" />
                   </div>
                   <div class="min-w-0">
-                    <p class="font-medium text-zinc-900 dark:text-white truncate max-w-[200px]">
+                    <p class="font-medium text-zinc-900 dark:text-white truncate max-w-50">
                       {{ productTitle(product) }}
                     </p>
                     <p v-if="product.brand" class="text-xs text-zinc-400 truncate">{{ product.brand }}</p>

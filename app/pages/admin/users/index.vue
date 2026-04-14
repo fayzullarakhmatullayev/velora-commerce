@@ -25,7 +25,7 @@ onMounted(() => {
 
 // ── Fetch users (profiles) ─────────────────────────────────────────────────────
 const { data, pending, refresh } = useAsyncData(
-  'admin-users-list',
+  () => `admin-users-${search.value}-${roleFilter.value}-${page.value}`,
   async () => {
     let query = supabase
       .from('profiles')
@@ -54,8 +54,6 @@ const { data, pending, refresh } = useAsyncData(
   { getCachedData: () => undefined },
 )
 
-// Explicitly watch filters and re-fetch — more reliable than useAsyncData's watch option in Nuxt 4
-watch([search, roleFilter, page], () => refresh())
 
 const users = computed(() => data.value?.users ?? [])
 const total = computed(() => data.value?.total ?? 0)

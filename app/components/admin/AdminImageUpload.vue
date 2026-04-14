@@ -5,6 +5,7 @@
 const props = defineProps<{
   modelValue: string   // current URL (empty string = no image)
   index: number        // position in the images array (used for unique filenames)
+  bucket?: string      // Supabase storage bucket name (default: 'products')
 }>()
 
 const emit = defineEmits<{
@@ -38,13 +39,15 @@ async function handleFile(file: File) {
     const ext = file.name.split('.').pop() ?? 'jpg'
     const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
+    const bucketName = props.bucket ?? 'products'
+
     const { error: uploadError } = await supabase.storage
-      .from('products')
+      .from(bucketName)
       .upload(path, file, { cacheControl: '3600', upsert: false })
 
     if (uploadError) throw uploadError
 
-    const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(path)
+    const { data: { publicUrl } } = supabase.storage.from(bucketName).getPublicUrl(path)
     emit('update:modelValue', publicUrl)
   } catch (err: any) {
     toast.add({ title: 'Upload failed', description: err.message, color: 'error', icon: 'heroicons:x-circle' })

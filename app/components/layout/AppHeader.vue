@@ -13,6 +13,8 @@ onMounted(() => {
   onUnmounted(() => window.removeEventListener('scroll', handler))
 })
 
+const isAdmin = computed(() => profile.value?.role === 'admin')
+
 // User dropdown items
 const accountItems = computed(() => [
   [
@@ -21,6 +23,9 @@ const accountItems = computed(() => [
       disabled: true,
     },
   ],
+  ...(isAdmin.value ? [[
+    { label: 'Admin Panel', icon: 'heroicons:squares-2x2', to: '/admin' },
+  ]] : []),
   [
     { label: t('nav.account'), icon: 'heroicons:user-circle', to: '/account' },
     { label: t('nav.orders'), icon: 'heroicons:shopping-bag', to: '/account/orders' },

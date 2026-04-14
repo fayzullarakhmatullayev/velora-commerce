@@ -3,7 +3,9 @@ const open = defineModel<boolean>('open', { default: false })
 const { t } = useI18n()
 const route = useRoute()
 const user = useSupabaseUser()
-const { logout } = useAuth()
+const { profile, logout } = useAuth()
+
+const isAdmin = computed(() => profile.value?.role === 'admin')
 
 const links = computed(() => [
   { label: t('nav.home'), to: '/', icon: 'heroicons:home' },
@@ -68,6 +70,15 @@ async function handleLogout() {
           <USeparator />
 
           <div v-if="user" class="space-y-1">
+            <NuxtLink
+              v-if="isAdmin"
+              to="/admin"
+              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950 transition-colors"
+              @click="open = false"
+            >
+              <UIcon name="heroicons:squares-2x2" class="size-5" />
+              Admin Panel
+            </NuxtLink>
             <NuxtLink
               to="/account"
               class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"

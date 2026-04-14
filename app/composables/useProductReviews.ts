@@ -12,12 +12,14 @@ export interface EnrichedReview extends Review {
 
 export const useProductReviews = (productId: Ref<string | undefined>) => {
   const supabase = useSupabase()
-  const user = useSupabaseUser()
 
   const { data, pending, refresh } = useAsyncData(
     () => `product-reviews-${productId.value ?? 'none'}`,
     async () => {
       if (!productId.value) return { reviews: [] as EnrichedReview[], userReview: null as Review | null, avgRating: 0 }
+
+      const { data: { session } } = await supabase.auth.getSession()
+      const userId = session?.user?.id
 
       const [reviewsRes, ownRes] = await Promise.all([
         supabase
@@ -26,12 +28,12 @@ export const useProductReviews = (productId: Ref<string | undefined>) => {
           .eq('product_id', productId.value)
           .eq('is_approved', true)
           .order('created_at', { ascending: false }),
-        user.value?.id
+        userId
           ? supabase
               .from('reviews')
               .select('*')
               .eq('product_id', productId.value)
-              .eq('user_id', user.value.id)
+              .eq('user_id', userId)
               .maybeSingle()
           : Promise.resolve({ data: null, error: null }),
       ])
@@ -81,7 +83,6 @@ export const useProductReviews = (productId: Ref<string | undefined>) => {
 // ── Submit a new review ────────────────────────────────────────────────────────
 export const useSubmitReview = () => {
   const supabase = useSupabase()
-  const user = useSupabaseUser()
   const toast = useToast()
   const submitting = ref(false)
 
@@ -91,12 +92,14 @@ export const useSubmitReview = () => {
     comment: string,
     onSuccess: () => void,
   ) {
-    if (!user.value?.id) return
+    const { data: { session } } = await supabase.auth.getSession()
+    const userId = session?.user?.id
+    if (!userId) return
     submitting.value = true
     try {
       const { error } = await supabase.from('reviews').insert({
         product_id: productId,
-        user_id: user.value.id,
+        user_id: userId,
         rating,
         comment: comment.trim() || null,
         is_approved: false,

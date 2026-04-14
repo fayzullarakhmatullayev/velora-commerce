@@ -88,33 +88,43 @@ const accountItems = computed(() => [
         <!-- Cart -->
         <CartButton />
 
-        <!-- Account -->
-        <template v-if="user">
-          <UDropdownMenu :items="accountItems">
-            <UButton color="neutral" variant="ghost" size="sm" class="hidden sm:flex">
-              <UAvatar
-                :src="profile?.avatar_url ?? undefined"
-                :alt="profile?.full_name ?? 'Account'"
-                size="xs"
-              />
-            </UButton>
-          </UDropdownMenu>
-        </template>
+        <!-- Account — ClientOnly prevents SSR/client avatar hydration mismatch
+             (profile is null on server, loaded on client after auth plugin runs) -->
+        <ClientOnly>
+          <template v-if="user">
+            <UDropdownMenu :items="accountItems">
+              <UButton color="neutral" variant="ghost" size="sm" class="hidden sm:flex">
+                <UAvatar
+                  :src="profile?.avatar_url ?? undefined"
+                  :alt="profile?.full_name ?? 'Account'"
+                  size="xs"
+                />
+              </UButton>
+            </UDropdownMenu>
+          </template>
 
-        <template v-else>
-          <UButton
-            to="/auth/login"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            class="hidden sm:flex"
-          >
-            {{ t('nav.login') }}
-          </UButton>
-          <UButton to="/auth/register" size="sm" class="hidden sm:flex">
-            {{ t('nav.register') }}
-          </UButton>
-        </template>
+          <template v-else>
+            <UButton
+              to="/auth/login"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              class="hidden sm:flex"
+            >
+              {{ t('nav.login') }}
+            </UButton>
+            <UButton to="/auth/register" size="sm" class="hidden sm:flex">
+              {{ t('nav.register') }}
+            </UButton>
+          </template>
+
+          <!-- Placeholder shown during SSR so layout doesn't shift -->
+          <template #fallback>
+            <div class="hidden sm:flex items-center gap-1">
+              <USkeleton class="h-8 w-8 rounded-full" />
+            </div>
+          </template>
+        </ClientOnly>
 
         <!-- Mobile menu trigger -->
         <UButton

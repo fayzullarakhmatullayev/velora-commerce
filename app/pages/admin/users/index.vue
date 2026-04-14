@@ -15,6 +15,7 @@ const roleFilter = ref('all')
 const page = ref(1)
 const PAGE_SIZE = 20
 
+// Reset page when filters change
 watch([search, roleFilter], () => { page.value = 1 })
 
 // ── Pre-fill search from query param (?id=…) from the orders detail link ─────
@@ -32,7 +33,6 @@ const { data, pending, refresh } = useAsyncData(
       .order('created_at', { ascending: false })
 
     if (search.value.trim()) {
-      // search by full_name or partial UUID
       const q = search.value.trim()
       query = query.or(`full_name.ilike.%${q}%,id.ilike.${q}%`)
     }
@@ -51,11 +51,11 @@ const { data, pending, refresh } = useAsyncData(
       total: count ?? 0,
     }
   },
-  {
-    watch: [search, roleFilter, page],
-    getCachedData: () => undefined,
-  },
+  { getCachedData: () => undefined },
 )
+
+// Explicitly watch filters and re-fetch — more reliable than useAsyncData's watch option in Nuxt 4
+watch([search, roleFilter, page], () => refresh())
 
 const users = computed(() => data.value?.users ?? [])
 const total = computed(() => data.value?.total ?? 0)
@@ -66,7 +66,11 @@ const pageTo = computed(() => Math.min(page.value * PAGE_SIZE, total.value))
 // ── Role update ────────────────────────────────────────────────────────────────
 const updatingId = ref<string | null>(null)
 
-async function updateRole(userId: string, newRole: 'admin' | 'user') {
+async function updateRole(userId: string, val: unknown) {
+  // USelect may emit the full option object or just the value depending on version
+  const newRole = (typeof val === 'object' && val !== null ? (val as any).value : val) as 'admin' | 'user'
+  if (!newRole || !['admin', 'user'].includes(newRole)) return
+
   updatingId.value = userId
   try {
     const { error } = await (supabase.from('profiles') as any)

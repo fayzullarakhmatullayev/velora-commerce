@@ -11,6 +11,9 @@ watch([status, search], () => { page.value = 1 })
 
 const { orders, total, totalPages, pending, refresh } = useAdminOrders({ status, search, page })
 
+// Explicit watch — more reliable than useAsyncData's built-in watch in Nuxt 4
+watch([status, search, page], () => refresh())
+
 const statusOptions = [
   { label: 'All Statuses', value: '' },
   { label: 'Pending', value: 'pending' },

@@ -12,6 +12,9 @@ watch([search, statusFilter], () => { page.value = 1 })
 
 const { products, total, totalPages, pending, refresh } = useAdminProducts({ search, statusFilter, page })
 
+// Explicit watch — more reliable than useAsyncData's built-in watch in Nuxt 4
+watch([search, statusFilter, page], () => refresh())
+
 const toast = useToast()
 
 // ── Status toggle ─────────────────────────────────────────────────────────────

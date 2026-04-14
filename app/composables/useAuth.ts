@@ -7,7 +7,6 @@ import type { Database } from '~/types/database.types'
 export const useAuth = () => {
   const supabase = useSupabase()
   const user = useSupabaseUser()
-  const { t } = useI18n()
 
   // ── Current user profile (loaded from profiles table) ─────────────────────
   const profile = useState<Database['public']['Tables']['profiles']['Row'] | null>(
@@ -91,7 +90,7 @@ export const useAuth = () => {
     const {
       data: { session },
     } = await supabase.auth.getSession()
-    if (!session?.user?.id) throw new Error(t('auth.login'))
+    if (!session?.user?.id) throw new Error('Not authenticated')
 
     const { data, error } = await supabase
       .from('profiles')

@@ -8,7 +8,9 @@ const mobileOpen = ref(false)
 // Frosted glass effect on scroll
 const isScrolled = ref(false)
 onMounted(() => {
-  const handler = () => { isScrolled.value = window.scrollY > 10 }
+  const handler = () => {
+    isScrolled.value = window.scrollY > 10
+  }
   window.addEventListener('scroll', handler, { passive: true })
   onUnmounted(() => window.removeEventListener('scroll', handler))
 })
@@ -23,9 +25,9 @@ const accountItems = computed(() => [
       disabled: true,
     },
   ],
-  ...(isAdmin.value ? [[
-    { label: 'Admin Panel', icon: 'heroicons:squares-2x2', to: '/admin' },
-  ]] : []),
+  ...(isAdmin.value
+    ? [[{ label: 'Admin Panel', icon: 'heroicons:squares-2x2', to: '/admin' }]]
+    : []),
   [
     { label: t('nav.account'), icon: 'heroicons:user-circle', to: '/account' },
     { label: t('nav.orders'), icon: 'heroicons:shopping-bag', to: '/account/orders' },
@@ -70,7 +72,6 @@ const accountItems = computed(() => [
 
       <!-- ── Right actions ─────────────────────────────────────────────── -->
       <div class="ml-auto flex items-center gap-1">
-
         <!-- Theme toggle -->
         <ThemeToggle />
 
@@ -126,7 +127,6 @@ const accountItems = computed(() => [
           @click="mobileOpen = true"
         />
       </div>
-
     </div>
   </header>
 

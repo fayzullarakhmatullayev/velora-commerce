@@ -75,7 +75,7 @@ const saving = ref(false)
 const emptyDraft = (): CategoryDraft => ({
   slug: '',
   sort_order: categories.value.length,
-  parent_id: '',
+  parent_id: 'none',
   image: '',
   is_active: true,
   translations: {
@@ -119,7 +119,7 @@ function openEdit(cat: Category) {
   draft.value = {
     slug: cat.slug ?? '',
     sort_order: cat.sort_order ?? 0,
-    parent_id: cat.parent_id ?? '',
+    parent_id: cat.parent_id ?? 'none',
     image: cat.image ?? '',
     is_active: cat.is_active,
     translations: {
@@ -154,7 +154,7 @@ async function saveCategory() {
     const payload = {
       slug: draft.value.slug.trim(),
       sort_order: Number(draft.value.sort_order) || 0,
-      parent_id: draft.value.parent_id || null,
+      parent_id: (draft.value.parent_id && draft.value.parent_id !== 'none') ? draft.value.parent_id : null,
       image: draft.value.image.trim() || null,
       is_active: draft.value.is_active,
       translations: draft.value.translations,
@@ -170,8 +170,9 @@ async function saveCategory() {
       toast.add({ title: 'Category created', color: 'success', icon: 'heroicons:check-circle' })
     }
 
+    await nextTick()
     formModal.value = false
-    await refresh()
+    refresh()
   } catch (err: any) {
     toast.add({ title: 'Failed to save', description: err.message, color: 'error', icon: 'heroicons:x-circle' })
   } finally {
@@ -181,7 +182,7 @@ async function saveCategory() {
 
 // Parent options for select
 const parentOptions = computed(() => [
-  { label: 'No parent (top-level)', value: '' },
+  { label: 'No parent (top-level)', value: 'none' },
   ...categories.value
     .filter(c => c.id !== editTarget.value?.id)
     .map(c => ({ label: c.translations?.en?.name ?? c.slug, value: c.id })),

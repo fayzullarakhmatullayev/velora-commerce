@@ -32,7 +32,7 @@ export function emptyForm(): ProductFormState {
     compare_price: '',
     stock: '0',
     images: [''],
-    category_id: '',
+    category_id: 'none',
     brand: '',
     tags: [],
     is_active: true,
@@ -52,7 +52,7 @@ export function productToForm(p: Product): ProductFormState {
     compare_price: p.compare_price != null ? String(p.compare_price) : '',
     stock: String(p.stock ?? 0),
     images: p.images?.length ? p.images : [''],
-    category_id: p.category_id ?? '',
+    category_id: p.category_id ?? 'none',
     brand: p.brand ?? '',
     tags: p.tags ?? [],
     is_active: p.is_active,
@@ -87,8 +87,8 @@ export function formToPayload(f: ProductFormState) {
     price: isNaN(price) ? 0 : price,
     compare_price: comparePrice != null && !isNaN(comparePrice) ? comparePrice : null,
     stock: isNaN(stock) ? 0 : stock,
-    images: f.images.map(u => u.trim()).filter(Boolean),
-    category_id: f.category_id || null,
+    images: f.images.map((u) => u.trim()).filter(Boolean),
+    category_id: (f.category_id && f.category_id !== 'none') ? f.category_id : null,
     brand: f.brand.trim() || null,
     tags: f.tags.filter(Boolean),
     is_active: f.is_active,
@@ -100,15 +100,19 @@ export function formToPayload(f: ProductFormState) {
 // ── Categories for the select dropdown ────────────────────────────────────────
 export const useAdminCategories = () => {
   const supabase = useSupabase()
-  return useAsyncData('admin-categories', async () => {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('id, translations, slug')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true })
-    if (error) throw error
-    return (data ?? []) as Pick<Category, 'id' | 'translations' | 'slug'>[]
-  }, { getCachedData: () => undefined })
+  return useAsyncData(
+    'admin-categories',
+    async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, translations, slug')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+      if (error) throw error
+      return (data ?? []) as Pick<Category, 'id' | 'translations' | 'slug'>[]
+    },
+    { getCachedData: () => undefined },
+  )
 }
 
 // ── Slug helper ────────────────────────────────────────────────────────────────

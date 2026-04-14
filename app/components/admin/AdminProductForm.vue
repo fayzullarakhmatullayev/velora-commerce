@@ -9,7 +9,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [val: ProductFormState]
-  'submit': []
+  submit: []
 }>()
 
 const form = computed({
@@ -21,7 +21,10 @@ const form = computed({
 function patch(updates: Partial<ProductFormState>) {
   emit('update:modelValue', { ...props.modelValue, ...updates })
 }
-function patchTranslation(locale: 'en' | 'uz' | 'ru', updates: Partial<ProductFormState['translations']['en']>) {
+function patchTranslation(
+  locale: 'en' | 'uz' | 'ru',
+  updates: Partial<ProductFormState['translations']['en']>,
+) {
   emit('update:modelValue', {
     ...props.modelValue,
     translations: {
@@ -51,8 +54,8 @@ watch(
 
 // ── Category options ──────────────────────────────────────────────────────────
 const categoryOptions = computed(() => [
-  { label: 'No category', value: '' },
-  ...props.categories.map(c => ({
+  { label: 'No category', value: 'none' },
+  ...props.categories.map((c) => ({
     label: c.translations?.en?.name ?? c.slug,
     value: c.id,
   })),
@@ -84,7 +87,7 @@ function addTag() {
   tagInput.value = ''
 }
 function removeTag(tag: string) {
-  patch({ tags: props.modelValue.tags.filter(t => t !== tag) })
+  patch({ tags: props.modelValue.tags.filter((t) => t !== tag) })
 }
 function onTagKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter' || e.key === ',') {
@@ -96,7 +99,6 @@ function onTagKeydown(e: KeyboardEvent) {
 
 <template>
   <form class="space-y-6" @submit.prevent="emit('submit')">
-
     <!-- ── Translations (tabbed) ─────────────────────────────────────────────── -->
     <VCard padding="md">
       <div class="flex items-center justify-between mb-4">
@@ -108,9 +110,11 @@ function onTagKeydown(e: KeyboardEvent) {
             :key="tab.key"
             type="button"
             class="px-3 py-1 rounded-md text-xs font-medium transition-colors"
-            :class="activeLocale === tab.key
-              ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-              : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'"
+            :class="
+              activeLocale === tab.key
+                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+            "
             @click="activeLocale = tab.key"
           >
             {{ tab.label }}
@@ -216,7 +220,7 @@ function onTagKeydown(e: KeyboardEvent) {
             :items="categoryOptions"
             size="sm"
             class="w-full"
-            @update:model-value="patch({ category_id: ($event as string) ?? '' })"
+            @update:model-value="patch({ category_id: ($event as string) === 'none' ? '' : (($event as string) ?? '') })"
           />
         </UFormField>
         <UFormField label="Brand">
@@ -241,7 +245,11 @@ function onTagKeydown(e: KeyboardEvent) {
             class="inline-flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-zinc-700 dark:text-zinc-300"
           >
             {{ tag }}
-            <button type="button" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200" @click="removeTag(tag)">
+            <button
+              type="button"
+              class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+              @click="removeTag(tag)"
+            >
               <UIcon name="heroicons:x-mark" class="size-3" />
             </button>
           </span>
@@ -254,7 +262,14 @@ function onTagKeydown(e: KeyboardEvent) {
             class="flex-1"
             @keydown="onTagKeydown"
           />
-          <UButton type="button" size="sm" color="neutral" variant="outline" icon="heroicons:plus" @click="addTag" />
+          <UButton
+            type="button"
+            size="sm"
+            color="neutral"
+            variant="outline"
+            icon="heroicons:plus"
+            @click="addTag"
+          />
         </div>
       </div>
     </VCard>
@@ -264,9 +279,18 @@ function onTagKeydown(e: KeyboardEvent) {
       <div class="flex items-center justify-between mb-4">
         <div>
           <h2 class="font-semibold text-zinc-900 dark:text-white">Images</h2>
-          <p class="text-xs text-zinc-400 mt-0.5">Upload files or paste URLs. First image is the thumbnail.</p>
+          <p class="text-xs text-zinc-400 mt-0.5">
+            Upload files or paste URLs. First image is the thumbnail.
+          </p>
         </div>
-        <UButton type="button" size="xs" color="neutral" variant="outline" icon="heroicons:plus" @click="addImage">
+        <UButton
+          type="button"
+          size="xs"
+          color="neutral"
+          variant="outline"
+          icon="heroicons:plus"
+          @click="addImage"
+        >
           Add slot
         </UButton>
       </div>
@@ -318,6 +342,5 @@ function onTagKeydown(e: KeyboardEvent) {
         <UButton type="submit" :loading="saving" icon="heroicons:check">Save Product</UButton>
       </slot>
     </div>
-
   </form>
 </template>

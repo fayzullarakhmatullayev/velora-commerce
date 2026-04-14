@@ -116,7 +116,7 @@ const pageTo = computed(() => Math.min(page.value * 20, total.value))
             placeholder="Search by title…"
             icon="heroicons:magnifying-glass"
             size="sm"
-            class="w-full"
+            :ui="{ root: 'relative flex items-center w-full' }"
           />
         </div>
         <USelect

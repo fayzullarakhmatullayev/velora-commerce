@@ -137,7 +137,7 @@ function initials(name: string | null) {
             placeholder="Search by name or user ID…"
             icon="heroicons:magnifying-glass"
             size="sm"
-            class="w-full"
+            :ui="{ root: 'relative flex items-center w-full' }"
           />
         </div>
         <USelect

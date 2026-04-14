@@ -77,7 +77,7 @@ const totalPages = computed(() => Math.ceil(total.value / 20))
         {{ t('nav.shop') }}
       </h1>
       <p class="mt-1 text-zinc-500 dark:text-zinc-400">
-        {{ total > 0 ? `${total} products` : 'Browse our collection' }}
+        {{ total > 0 ? t('shop.showResults', { count: total }) : t('shop.browseCollection') }}
       </p>
     </div>
 
@@ -124,8 +124,10 @@ const totalPages = computed(() => Math.ceil(total.value / 20))
             name="heroicons:magnifying-glass"
             class="size-16 text-zinc-200 dark:text-zinc-700 mb-4"
           />
-          <p class="font-medium text-zinc-700 dark:text-zinc-300">No products found</p>
-          <p class="mt-1 text-sm text-zinc-400">Try adjusting your search or filters</p>
+          <p class="font-medium text-zinc-700 dark:text-zinc-300">
+            {{ t('shop.noProductsFound') }}
+          </p>
+          <p class="mt-1 text-sm text-zinc-400">{{ t('shop.noProductsHint') }}</p>
         </div>
 
         <ProductGrid :products="products" :loading="pending" />
@@ -138,7 +140,7 @@ const totalPages = computed(() => Math.ceil(total.value / 20))
     </div>
 
     <!-- Mobile filter drawer -->
-    <USlideover v-model:open="filtersOpen" side="left" :ui="{ width: 'max-w-xs' }">
+    <USlideover v-model:open="filtersOpen" side="left" :class="{ width: 'max-w-xs' }">
       <template #content>
         <div class="flex h-full flex-col bg-white dark:bg-zinc-900">
           <div
@@ -157,7 +159,9 @@ const totalPages = computed(() => Math.ceil(total.value / 20))
             <ProductFilters v-model="filters" />
           </div>
           <div class="border-t border-zinc-100 dark:border-zinc-800 p-4">
-            <UButton block @click="filtersOpen = false"> Show {{ total }} results </UButton>
+            <UButton block @click="filtersOpen = false">{{
+              t('shop.showResults', { count: total })
+            }}</UButton>
           </div>
         </div>
       </template>

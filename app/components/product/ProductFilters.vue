@@ -25,12 +25,12 @@ function clearFilters() {
   emit('update:modelValue', { categoryId: null, sort: 'newest', minPrice: '', maxPrice: '' })
 }
 
-const sortOptions = [
-  { label: 'Newest', value: 'newest' },
-  { label: 'Price: Low → High', value: 'price-asc' },
-  { label: 'Price: High → Low', value: 'price-desc' },
-  { label: 'Top Rated', value: 'rating' },
-]
+const sortOptions = computed(() => [
+  { label: t('product.sortNewest'), value: 'newest' },
+  { label: t('product.sortPriceAsc'), value: 'price-asc' },
+  { label: t('product.sortPriceDesc'), value: 'price-desc' },
+  { label: t('product.sortRating'), value: 'rating' },
+])
 
 const hasActiveFilters = computed(
   () =>
@@ -83,7 +83,7 @@ const hasActiveFilters = computed(
             "
             @click="update({ categoryId: null })"
           >
-            All Categories
+            {{ t('product.allCategories') }}
           </button>
         </li>
         <li v-for="cat in (categories ?? [])" :key="cat.id">
@@ -107,13 +107,13 @@ const hasActiveFilters = computed(
     <!-- Price range -->
     <div class="space-y-2">
       <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-        Price Range ($)
+        {{ t('product.priceRange') }}
       </label>
       <div class="flex gap-2">
         <UInput
           :value="modelValue.minPrice"
           type="number"
-          placeholder="Min"
+          :placeholder="t('product.minPrice')"
           size="sm"
           min="0"
           class="w-full"
@@ -122,7 +122,7 @@ const hasActiveFilters = computed(
         <UInput
           :value="modelValue.maxPrice"
           type="number"
-          placeholder="Max"
+          :placeholder="t('product.maxPrice')"
           size="sm"
           min="0"
           class="w-full"
@@ -139,7 +139,7 @@ const hasActiveFilters = computed(
       block
       @click="clearFilters"
     >
-      Clear filters
+      {{ t('product.clearFilters') }}
     </UButton>
   </div>
 </template>

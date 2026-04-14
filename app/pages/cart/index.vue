@@ -62,8 +62,8 @@ useSeoMeta({ title: 'Cart — Velora Commerce' })
               <span>-${{ store.discount.toFixed(2) }}</span>
             </div>
             <div class="flex justify-between text-zinc-500">
-              <span>Shipping</span>
-              <span class="text-emerald-600">Free</span>
+              <span>{{ t('cart.shipping') }}</span>
+              <span class="text-emerald-600">{{ t('cart.free') }}</span>
             </div>
             <USeparator class="my-2" />
             <div class="flex justify-between font-bold text-zinc-900 dark:text-white text-base">

@@ -82,7 +82,7 @@ const socials = [
         <!-- Company links -->
         <div class="space-y-4">
           <h4 class="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-            Company
+            {{ t('footer.company') }}
           </h4>
           <ul class="space-y-2">
             <li v-for="link in companyLinks" :key="link.to">
@@ -99,7 +99,7 @@ const socials = [
         <!-- Legal + language -->
         <div class="space-y-4">
           <h4 class="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">
-            Legal
+            {{ t('footer.legal') }}
           </h4>
           <ul class="space-y-2">
             <li v-for="link in legalLinks" :key="link.to">

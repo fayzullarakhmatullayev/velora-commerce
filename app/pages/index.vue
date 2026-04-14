@@ -50,7 +50,7 @@ const { categories, getCategoryName } = useCategories()
             class="font-display text-5xl font-extrabold leading-[1.1] tracking-tight text-zinc-900 dark:text-white sm:text-6xl lg:text-7xl mb-6"
           >
             {{ t('home.heroTitle') }}
-            <span class="gradient-text block">Scale Effortlessly.</span>
+            <span class="gradient-text block">{{ t('common.tagline').split('. ')[1] }}</span>
           </h1>
 
           <p class="text-lg text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-xl mb-10">
@@ -68,7 +68,7 @@ const { categories, getCategoryName } = useCategories()
               <UIcon name="heroicons:arrow-right" class="size-4" />
             </UButton>
             <UButton to="/about" size="xl" color="neutral" variant="ghost">
-              Learn our story
+              {{ t('home.learnStory') }}
               <UIcon name="heroicons:arrow-right" class="size-4" />
             </UButton>
           </div>
@@ -77,9 +77,9 @@ const { categories, getCategoryName } = useCategories()
           <div class="mt-16 grid grid-cols-3 gap-8 max-w-sm">
             <div
               v-for="stat in [
-                { value: '10K+', label: 'Products' },
-                { value: '50K+', label: 'Customers' },
-                { value: '4.9★', label: 'Rating' },
+                { value: '10K+', label: t('home.statsProducts') },
+                { value: '50K+', label: t('home.statsCustomers') },
+                { value: '4.9★', label: t('home.statsRating') },
               ]"
               :key="stat.label"
             >

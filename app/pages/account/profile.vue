@@ -2,6 +2,7 @@
 definePageMeta({ middleware: 'auth' })
 useSeoMeta({ title: 'Edit Profile — Velora Commerce' })
 
+const { t } = useI18n()
 const supabase = useSupabase()
 const { updateProfile } = useAuth()
 const toast = useToast()
@@ -58,7 +59,7 @@ async function save() {
     <!-- Header -->
     <div class="mb-8 flex items-center gap-3">
       <UButton to="/account" color="neutral" variant="ghost" icon="heroicons:arrow-left" size="sm" />
-      <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">Edit Profile</h1>
+      <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">{{ t('account.editProfileTitle') }}</h1>
     </div>
 
     <!-- Loading skeleton -->
@@ -92,7 +93,7 @@ async function save() {
 
         <!-- Form -->
         <form class="space-y-5" @submit.prevent="save">
-          <UFormField label="Full Name" name="full_name">
+          <UFormField :label="t('account.fullNameLabel')" name="full_name">
             <UInput
               v-model="form.full_name"
               placeholder="Jane Smith"
@@ -101,14 +102,14 @@ async function save() {
             />
           </UFormField>
 
-          <UFormField label="Email" name="email">
+          <UFormField :label="t('account.emailLabel')" name="email">
             <UInput :value="email" type="email" disabled class="w-full opacity-60" />
             <template #hint>
-              <span class="text-xs text-zinc-400">Contact support to change your email</span>
+              <span class="text-xs text-zinc-400">{{ t('account.emailHint') }}</span>
             </template>
           </UFormField>
 
-          <UFormField label="Phone" name="phone">
+          <UFormField :label="t('account.phoneLabel')" name="phone">
             <UInput
               v-model="form.phone"
               type="tel"
@@ -119,17 +120,17 @@ async function save() {
           </UFormField>
 
           <div class="pt-2">
-            <UButton type="submit" :loading="loading" size="lg">Save Changes</UButton>
+            <UButton type="submit" :loading="loading" size="lg">{{ t('common.saveChanges') }}</UButton>
           </div>
         </form>
       </VCard>
 
       <!-- Password section -->
       <VCard padding="lg" class="mt-6">
-        <h2 class="font-semibold text-zinc-900 dark:text-white mb-1">Password</h2>
-        <p class="text-sm text-zinc-400 mb-4">Change your account password.</p>
+        <h2 class="font-semibold text-zinc-900 dark:text-white mb-1">{{ t('account.passwordLabel') }}</h2>
+        <p class="text-sm text-zinc-400 mb-4">{{ t('account.passwordDesc') }}</p>
         <UButton to="/auth/forgot-password" color="neutral" variant="outline" size="sm">
-          Reset Password via Email
+          {{ t('account.resetViaEmail') }}
         </UButton>
       </VCard>
     </template>

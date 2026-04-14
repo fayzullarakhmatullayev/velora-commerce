@@ -6,6 +6,7 @@ useSeoMeta({ title: 'My Orders — Velora Commerce' })
 
 type Order = Database['public']['Tables']['orders']['Row']
 
+const { t } = useI18n()
 const supabase = useSupabase()
 
 const { data: orders, pending, refresh } = useAsyncData(
@@ -60,7 +61,7 @@ function formatPrice(n: number) {
     <!-- Header -->
     <div class="mb-8 flex items-center gap-3">
       <UButton to="/account" color="neutral" variant="ghost" icon="heroicons:arrow-left" size="sm" />
-      <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">My Orders</h1>
+      <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">{{ t('account.myOrders') }}</h1>
     </div>
 
     <!-- Loading -->
@@ -74,9 +75,9 @@ function formatPrice(n: number) {
       class="flex flex-col items-center justify-center py-24 text-center"
     >
       <UIcon name="heroicons:shopping-bag" class="size-16 text-zinc-200 dark:text-zinc-700 mb-4" />
-      <p class="font-medium text-zinc-700 dark:text-zinc-300">No orders yet</p>
-      <p class="mt-1 text-sm text-zinc-400">When you place orders, they'll appear here.</p>
-      <UButton to="/shop" class="mt-6">Start Shopping</UButton>
+      <p class="font-medium text-zinc-700 dark:text-zinc-300">{{ t('account.noOrders') }}</p>
+      <p class="mt-1 text-sm text-zinc-400">{{ t('account.noOrdersDesc') }}</p>
+      <UButton to="/shop" class="mt-6">{{ t('common.startShopping') }}</UButton>
     </div>
 
     <!-- Orders list -->

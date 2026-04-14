@@ -15,7 +15,7 @@ const items = computed(() =>
   available.value.map((l) => ({
     label: l.label,
     icon: l.active ? 'heroicons:check' : undefined,
-    click: () => setLocale(l.code as 'en' | 'uz' | 'ru'),
+    onSelect: () => setLocale(l.code as 'en' | 'uz' | 'ru'),
   })),
 )
 </script>

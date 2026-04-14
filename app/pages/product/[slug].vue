@@ -71,7 +71,7 @@ if (!pending.value && !product.value) {
     <template v-else-if="product">
       <!-- Breadcrumb -->
       <nav class="mb-6 flex items-center gap-2 text-sm text-zinc-400">
-        <NuxtLink to="/" class="hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors">Home</NuxtLink>
+        <NuxtLink to="/" class="hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors">{{ t('breadcrumb.home') }}</NuxtLink>
         <UIcon name="heroicons:chevron-right" class="size-3.5" />
         <NuxtLink to="/shop" class="hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors">{{ t('nav.shop') }}</NuxtLink>
         <UIcon name="heroicons:chevron-right" class="size-3.5" />
@@ -113,7 +113,7 @@ if (!pending.value && !product.value) {
             >
               ${{ product.compare_price.toFixed(2) }}
             </span>
-            <VBadge v-if="isOnSale" color="error">Save {{ discountPercent }}%</VBadge>
+            <VBadge v-if="isOnSale" color="error">{{ t('common.sale') }} {{ discountPercent }}%</VBadge>
           </div>
 
           <!-- Stock status -->
@@ -135,7 +135,7 @@ if (!pending.value && !product.value) {
           <!-- Variants -->
           <div v-if="variants && variants.length > 0" class="space-y-3">
             <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-              Variant
+              {{ t('product.variant') }}
             </label>
             <div class="flex flex-wrap gap-2">
               <button
@@ -151,7 +151,7 @@ if (!pending.value && !product.value) {
                 @click="selectedVariant = v"
               >
                 {{ Object.values(v.attributes).join(' / ') }}
-                <span v-if="v.stock === 0" class="ml-1 text-zinc-400">(sold out)</span>
+                <span v-if="v.stock === 0" class="ml-1 text-zinc-400">{{ t('product.soldOut') }}</span>
               </button>
             </div>
           </div>
@@ -217,7 +217,7 @@ if (!pending.value && !product.value) {
           <div class="space-y-2">
             <h3 class="font-semibold text-zinc-900 dark:text-white">{{ t('product.description') }}</h3>
             <p class="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
-              {{ description || 'No description available.' }}
+              {{ description || t('product.noDescription') }}
             </p>
           </div>
 

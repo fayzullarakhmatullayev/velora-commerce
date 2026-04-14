@@ -32,7 +32,7 @@ async function submit() {
         {{ t('auth.forgotPassword') }}
       </h1>
       <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-        Enter your email and we'll send a reset link.
+        {{ t('auth.resetInstructions') }}
       </p>
     </div>
 
@@ -43,10 +43,10 @@ async function submit() {
           <UIcon name="heroicons:envelope-open" class="size-7 text-emerald-600 dark:text-emerald-400" />
         </div>
         <p class="text-sm text-zinc-600 dark:text-zinc-300">
-          Reset link sent to <strong>{{ email }}</strong>. Check your inbox.
+          {{ t('auth.resetSent', { email }) }}
         </p>
         <NuxtLink to="/auth/login" class="text-sm font-medium text-primary-600 dark:text-primary-400">
-          ← Back to login
+          {{ t('auth.backToLogin') }}
         </NuxtLink>
       </div>
 
@@ -70,7 +70,7 @@ async function submit() {
 
         <div class="text-center">
           <NuxtLink to="/auth/login" class="text-sm text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors">
-            ← Back to login
+            {{ t('auth.backToLogin') }}
           </NuxtLink>
         </div>
       </form>

@@ -6,6 +6,7 @@ definePageMeta({ middleware: 'auth' })
 type Order = Database['public']['Tables']['orders']['Row']
 type OrderItem = Database['public']['Tables']['order_items']['Row']
 
+const { t } = useI18n()
 const route = useRoute()
 const supabase = useSupabase()
 
@@ -87,7 +88,7 @@ function formatPrice(n: number) {
         <!-- Status tracker -->
         <VCard padding="md">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="font-semibold text-zinc-900 dark:text-white">Status</h2>
+            <h2 class="font-semibold text-zinc-900 dark:text-white">{{ t('account.orderStatus') }}</h2>
             <UBadge :color="(statusColor[data.order.status] as any) ?? 'neutral'" variant="subtle">
               {{ data.order.status }}
             </UBadge>
@@ -119,7 +120,7 @@ function formatPrice(n: number) {
 
         <!-- Order items -->
         <VCard padding="md">
-          <h2 class="font-semibold text-zinc-900 dark:text-white mb-4">Items ({{ data.items.length }})</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white mb-4">{{ t('account.items', { count: data.items.length }) }}</h2>
           <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
             <li v-for="item in data.items" :key="item.id" class="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
               <div class="size-14 rounded-lg overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800">
@@ -128,7 +129,7 @@ function formatPrice(n: number) {
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-zinc-900 dark:text-white truncate">{{ item.title }}</p>
-                <p class="text-xs text-zinc-400 mt-0.5">Qty: {{ item.quantity }}</p>
+                <p class="text-xs text-zinc-400 mt-0.5">{{ t('common.qty') }}: {{ item.quantity }}</p>
               </div>
               <p class="text-sm font-semibold text-zinc-900 dark:text-white shrink-0">
                 {{ formatPrice(item.price * item.quantity) }}
@@ -139,7 +140,7 @@ function formatPrice(n: number) {
 
         <!-- Shipping address -->
         <VCard padding="md">
-          <h2 class="font-semibold text-zinc-900 dark:text-white mb-3">Shipping Address</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white mb-3">{{ t('account.shippingAddress') }}</h2>
           <address class="not-italic text-sm text-zinc-600 dark:text-zinc-300 space-y-0.5">
             <p class="font-medium">{{ data.order.shipping_address.full_name }}</p>
             <p>{{ data.order.shipping_address.street }}</p>
@@ -153,37 +154,37 @@ function formatPrice(n: number) {
       <!-- Right: summary -->
       <div class="space-y-6">
         <VCard padding="md">
-          <h2 class="font-semibold text-zinc-900 dark:text-white mb-4">Order Summary</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white mb-4">{{ t('account.orderSummary') }}</h2>
           <div class="space-y-2 text-sm">
             <div class="flex justify-between text-zinc-600 dark:text-zinc-400">
-              <span>Subtotal</span>
+              <span>{{ t('account.subtotal') }}</span>
               <span>{{ formatPrice(data.order.subtotal) }}</span>
             </div>
             <div v-if="data.order.discount > 0" class="flex justify-between text-green-600 dark:text-green-400">
-              <span>Discount <span v-if="data.order.coupon_code" class="font-mono text-xs">({{ data.order.coupon_code }})</span></span>
+              <span>{{ t('account.discount') }} <span v-if="data.order.coupon_code" class="font-mono text-xs">({{ data.order.coupon_code }})</span></span>
               <span>-{{ formatPrice(data.order.discount) }}</span>
             </div>
             <div class="flex justify-between text-zinc-600 dark:text-zinc-400">
-              <span>Shipping</span>
-              <span class="text-green-600 dark:text-green-400">Free</span>
+              <span>{{ t('account.shipping') }}</span>
+              <span class="text-green-600 dark:text-green-400">{{ t('account.free') }}</span>
             </div>
             <USeparator class="my-2" />
             <div class="flex justify-between font-semibold text-zinc-900 dark:text-white text-base">
-              <span>Total</span>
+              <span>{{ t('account.total') }}</span>
               <span>{{ formatPrice(data.order.total) }}</span>
             </div>
           </div>
         </VCard>
 
         <VCard padding="md">
-          <h2 class="font-semibold text-zinc-900 dark:text-white mb-3">Payment</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white mb-3">{{ t('account.payment') }}</h2>
           <div class="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
             <div class="flex justify-between">
-              <span>Method</span>
-              <span class="font-medium text-zinc-900 dark:text-white">Card</span>
+              <span>{{ t('account.paymentMethod') }}</span>
+              <span class="font-medium text-zinc-900 dark:text-white">{{ t('account.paymentCard') }}</span>
             </div>
             <div class="flex justify-between">
-              <span>Status</span>
+              <span>{{ t('account.paymentStatus') }}</span>
               <UBadge :color="data.order.payment_status === 'paid' ? 'success' : 'warning'" variant="subtle" size="sm">
                 {{ data.order.payment_status }}
               </UBadge>
@@ -196,8 +197,8 @@ function formatPrice(n: number) {
     <!-- Not found -->
     <div v-else class="flex flex-col items-center justify-center py-24 text-center">
       <UIcon name="heroicons:exclamation-circle" class="size-16 text-zinc-200 dark:text-zinc-700 mb-4" />
-      <p class="font-medium text-zinc-700 dark:text-zinc-300">Order not found</p>
-      <UButton to="/account/orders" class="mt-6" color="neutral" variant="outline">Back to Orders</UButton>
+      <p class="font-medium text-zinc-700 dark:text-zinc-300">{{ t('account.orderNotFound') }}</p>
+      <UButton to="/account/orders" class="mt-6" color="neutral" variant="outline">{{ t('account.backToOrders') }}</UButton>
     </div>
   </div>
 </template>

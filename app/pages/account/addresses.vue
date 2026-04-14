@@ -7,6 +7,7 @@ useSeoMeta({ title: 'Addresses — Velora Commerce' })
 type Address = Database['public']['Tables']['addresses']['Row']
 type AddressInsert = Database['public']['Tables']['addresses']['Insert']
 
+const { t } = useI18n()
 const supabase = useSupabase()
 const user = useSupabaseUser()
 const toast = useToast()
@@ -125,9 +126,9 @@ async function remove(id: string) {
     <div class="mb-8 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <UButton to="/account" color="neutral" variant="ghost" icon="heroicons:arrow-left" size="sm" />
-        <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">Addresses</h1>
+        <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">{{ t('account.addressesTitle') }}</h1>
       </div>
-      <UButton icon="heroicons:plus" size="sm" @click="openAdd">Add Address</UButton>
+      <UButton icon="heroicons:plus" size="sm" @click="openAdd">{{ t('account.addAddress') }}</UButton>
     </div>
 
     <!-- Empty -->
@@ -136,9 +137,9 @@ async function remove(id: string) {
       class="flex flex-col items-center justify-center py-24 text-center"
     >
       <UIcon name="heroicons:map-pin" class="size-16 text-zinc-200 dark:text-zinc-700 mb-4" />
-      <p class="font-medium text-zinc-700 dark:text-zinc-300">No addresses saved</p>
-      <p class="mt-1 text-sm text-zinc-400">Add a delivery address to speed up checkout.</p>
-      <UButton class="mt-6" @click="openAdd">Add Address</UButton>
+      <p class="font-medium text-zinc-700 dark:text-zinc-300">{{ t('account.noAddresses') }}</p>
+      <p class="mt-1 text-sm text-zinc-400">{{ t('account.noAddressesDesc') }}</p>
+      <UButton class="mt-6" @click="openAdd">{{ t('account.addAddress') }}</UButton>
     </div>
 
     <!-- Address cards -->
@@ -154,7 +155,7 @@ async function remove(id: string) {
             <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               {{ addr.label }}
             </span>
-            <UBadge v-if="addr.is_default" color="primary" variant="subtle" size="sm">Default</UBadge>
+            <UBadge v-if="addr.is_default" color="primary" variant="subtle" size="sm">{{ t('common.default') }}</UBadge>
           </div>
           <div class="flex items-center gap-1">
             <UButton icon="heroicons:pencil" size="xs" color="neutral" variant="ghost" @click="openEdit(addr)" />
@@ -185,54 +186,54 @@ async function remove(id: string) {
           class="mt-3"
           @click="setDefault(addr.id)"
         >
-          Set as default
+          {{ t('account.setDefault') }}
         </UButton>
       </VCard>
     </div>
 
     <!-- Add / Edit modal -->
-    <UModal v-model:open="modalOpen" :title="editing ? 'Edit Address' : 'Add Address'">
+    <UModal v-model:open="modalOpen" :title="editing ? t('account.editAddress') : t('account.addAddress')">
       <template #body>
         <form class="space-y-4" @submit.prevent="save">
-          <UFormField label="Label" name="label">
-            <UInput v-model="form.label" placeholder="Home / Work / Other" class="w-full" />
+          <UFormField :label="t('account.addressLabel')" name="label">
+            <UInput v-model="form.label" :placeholder="t('account.addressLabelPlaceholder')" class="w-full" />
           </UFormField>
 
           <div class="grid grid-cols-2 gap-3">
-            <UFormField label="Full Name *" name="full_name" class="col-span-2">
+            <UFormField :label="`${t('checkout.fullName')} *`" name="full_name" class="col-span-2">
               <UInput v-model="form.full_name" placeholder="Jane Smith" class="w-full" />
             </UFormField>
 
-            <UFormField label="Phone *" name="phone" class="col-span-2">
+            <UFormField :label="`${t('checkout.phone')} *`" name="phone" class="col-span-2">
               <UInput v-model="form.phone" type="tel" placeholder="+1 555 000 0000" class="w-full" />
             </UFormField>
 
-            <UFormField label="Street *" name="street" class="col-span-2">
+            <UFormField :label="`${t('checkout.street')} *`" name="street" class="col-span-2">
               <UInput v-model="form.street" placeholder="123 Main St" class="w-full" />
             </UFormField>
 
-            <UFormField label="City *" name="city">
+            <UFormField :label="`${t('checkout.city')} *`" name="city">
               <UInput v-model="form.city" placeholder="New York" class="w-full" />
             </UFormField>
 
-            <UFormField label="State / Region" name="state">
+            <UFormField :label="t('checkout.state')" name="state">
               <UInput v-model="form.state" placeholder="NY" class="w-full" />
             </UFormField>
 
-            <UFormField label="Postal Code *" name="postal_code">
+            <UFormField :label="`${t('checkout.postalCode')} *`" name="postal_code">
               <UInput v-model="form.postal_code" placeholder="10001" class="w-full" />
             </UFormField>
 
-            <UFormField label="Country *" name="country">
+            <UFormField :label="`${t('checkout.country')} *`" name="country">
               <UInput v-model="form.country" placeholder="US" class="w-full" />
             </UFormField>
           </div>
 
-          <UCheckbox v-model="form.is_default" label="Set as default address" />
+          <UCheckbox v-model="form.is_default" :label="t('account.setAsDefault')" />
 
           <div class="flex justify-end gap-2 pt-2">
-            <UButton color="neutral" variant="ghost" @click="modalOpen = false">Cancel</UButton>
-            <UButton type="submit" :loading="saving">{{ editing ? 'Save Changes' : 'Add Address' }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="modalOpen = false">{{ t('common.cancel') }}</UButton>
+            <UButton type="submit" :loading="saving">{{ editing ? t('common.saveChanges') : t('account.addAddress') }}</UButton>
           </div>
         </form>
       </template>

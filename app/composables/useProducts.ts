@@ -21,7 +21,6 @@ const PAGE_SIZE = 20
 
 export const useProducts = (options: MaybeRef<UseProductsOptions> = {}) => {
   const supabase = useSupabase()
-  const { locale } = useI18n()
 
   return useAsyncData(
     `products-${JSON.stringify(toValue(options))}`,
@@ -98,8 +97,5 @@ export const useProductTitle = (product: ProductRow) => {
 }
 
 export const useProductSlug = (product: ProductRow) => {
-  return computed(
-    () =>
-      product.translations['en']?.slug || product.id,
-  )
+  return computed(() => product.translations['en']?.slug || product.id)
 }

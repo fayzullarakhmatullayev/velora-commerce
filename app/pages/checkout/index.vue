@@ -5,6 +5,7 @@ import type { Stripe, StripeElements, StripePaymentElement } from '@stripe/strip
 definePageMeta({ middleware: 'auth' })
 useSeoMeta({ title: 'Checkout — Velora Commerce' })
 
+const { t } = useI18n()
 const config = useRuntimeConfig()
 const { store: cartStore } = useCart()
 const supabase = useSupabase()
@@ -243,14 +244,14 @@ function formatPrice(n: number) {
 <template>
   <div class="velora-container py-10">
     <div class="mb-8">
-      <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">Checkout</h1>
+      <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">{{ t('checkout.title') }}</h1>
     </div>
 
     <!-- Empty cart guard -->
     <div v-if="cartStore.count === 0" class="flex flex-col items-center justify-center py-24 text-center">
       <UIcon name="heroicons:shopping-cart" class="size-16 text-zinc-200 dark:text-zinc-700 mb-4" />
-      <p class="font-medium text-zinc-700 dark:text-zinc-300">Your cart is empty</p>
-      <UButton to="/shop" class="mt-6">Continue Shopping</UButton>
+      <p class="font-medium text-zinc-700 dark:text-zinc-300">{{ t('checkout.emptyCart') }}</p>
+      <UButton to="/shop" class="mt-6">{{ t('common.continueShopping') }}</UButton>
     </div>
 
     <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -269,7 +270,7 @@ function formatPrice(n: number) {
               class="flex size-6 items-center justify-center rounded-full text-xs font-bold transition-colors"
               :class="step === 'shipping' ? 'bg-primary-600 text-white' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500'"
             >1</span>
-            Shipping
+            {{ t('checkout.shippingStep') }}
           </button>
           <div class="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
           <span
@@ -280,18 +281,18 @@ function formatPrice(n: number) {
               class="flex size-6 items-center justify-center rounded-full text-xs font-bold transition-colors"
               :class="step === 'payment' ? 'bg-primary-600 text-white' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-500'"
             >2</span>
-            Payment
+            {{ t('checkout.paymentStep') }}
           </span>
         </div>
 
         <!-- ── Step 1: Shipping ─────────────────────────────────────────────── -->
         <VCard v-if="step === 'shipping'" padding="lg">
-          <h2 class="font-semibold text-zinc-900 dark:text-white mb-5">Shipping Information</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white mb-5">{{ t('checkout.shippingInfo') }}</h2>
 
           <!-- Saved addresses -->
           <div v-if="addresses.length > 0" class="mb-6">
             <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3">
-              Saved Addresses
+              {{ t('checkout.savedAddresses') }}
             </p>
             <div class="space-y-2">
               <label
@@ -335,52 +336,52 @@ function formatPrice(n: number) {
                   class="accent-violet-600"
                   @change="() => { useNewAddress = true; selectedAddressId = null }"
                 />
-                <span class="text-sm font-medium text-zinc-900 dark:text-white">Use a different address</span>
+                <span class="text-sm font-medium text-zinc-900 dark:text-white">{{ t('checkout.useNewAddress') }}</span>
               </label>
             </div>
           </div>
 
           <!-- New address form -->
           <div v-if="useNewAddress || addresses.length === 0" class="grid grid-cols-2 gap-3">
-            <UFormField label="Full Name *" name="full_name" class="col-span-2">
+            <UFormField :label="`${t('checkout.fullName')} *`" name="full_name" class="col-span-2">
               <UInput v-model="shipping.full_name" placeholder="Jane Smith" class="w-full" />
             </UFormField>
 
-            <UFormField label="Phone *" name="phone" class="col-span-2">
+            <UFormField :label="`${t('checkout.phone')} *`" name="phone" class="col-span-2">
               <UInput v-model="shipping.phone" type="tel" placeholder="+1 555 000 0000" class="w-full" />
             </UFormField>
 
-            <UFormField label="Street Address *" name="street" class="col-span-2">
+            <UFormField :label="`${t('checkout.street')} *`" name="street" class="col-span-2">
               <UInput v-model="shipping.street" placeholder="123 Main St" class="w-full" />
             </UFormField>
 
-            <UFormField label="City *" name="city">
+            <UFormField :label="`${t('checkout.city')} *`" name="city">
               <UInput v-model="shipping.city" placeholder="New York" class="w-full" />
             </UFormField>
 
-            <UFormField label="State / Region" name="state">
+            <UFormField :label="t('checkout.state')" name="state">
               <UInput v-model="shipping.state" placeholder="NY" class="w-full" />
             </UFormField>
 
-            <UFormField label="Postal Code *" name="postal_code">
+            <UFormField :label="`${t('checkout.postalCode')} *`" name="postal_code">
               <UInput v-model="shipping.postal_code" placeholder="10001" class="w-full" />
             </UFormField>
 
-            <UFormField label="Country *" name="country">
+            <UFormField :label="`${t('checkout.country')} *`" name="country">
               <UInput v-model="shipping.country" placeholder="US" class="w-full" />
             </UFormField>
           </div>
 
           <div class="mt-6">
             <UButton size="lg" block :loading="loadingIntent" @click="continueToPayment">
-              Continue to Payment
+              {{ t('checkout.continuePayment') }}
             </UButton>
           </div>
         </VCard>
 
         <!-- ── Step 2: Payment ──────────────────────────────────────────────── -->
         <VCard v-else-if="step === 'payment'" padding="lg">
-          <h2 class="font-semibold text-zinc-900 dark:text-white mb-5">Payment Details</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white mb-5">{{ t('checkout.paymentDetails') }}</h2>
 
           <!-- Stripe Payment Element mount point -->
           <div class="mb-6">
@@ -401,13 +402,13 @@ function formatPrice(n: number) {
           <div class="mb-6 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900 px-4 py-3">
             <p class="text-xs font-medium text-blue-800 dark:text-blue-200 flex items-center gap-1.5">
               <UIcon name="heroicons:information-circle" class="size-4 shrink-0" />
-              Test mode — use card <span class="font-mono">4242 4242 4242 4242</span>, any future date, any CVC
+              {{ t('checkout.testModeHint') }}
             </p>
           </div>
 
           <div class="flex gap-3">
             <UButton color="neutral" variant="outline" :disabled="paying" @click="step = 'shipping'">
-              Back
+              {{ t('common.back') }}
             </UButton>
             <UButton
               class="flex-1"
@@ -416,7 +417,7 @@ function formatPrice(n: number) {
               icon="heroicons:lock-closed"
               @click="pay"
             >
-              Pay {{ formatPrice(cartStore.total) }}
+              {{ t('checkout.pay', { amount: formatPrice(cartStore.total) }) }}
             </UButton>
           </div>
         </VCard>
@@ -426,7 +427,7 @@ function formatPrice(n: number) {
       <!-- ── Right column: Order summary ────────────────────────────────────── -->
       <div class="space-y-4">
         <VCard padding="md">
-          <h2 class="font-semibold text-zinc-900 dark:text-white mb-4">Order Summary</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white mb-4">{{ t('checkout.orderSummary') }}</h2>
 
           <ul class="divide-y divide-zinc-100 dark:divide-zinc-800 mb-4">
             <li v-for="item in cartStore.items" :key="item.id" class="flex items-center gap-3 py-3 first:pt-0">
@@ -448,23 +449,23 @@ function formatPrice(n: number) {
 
           <div class="space-y-2 text-sm border-t border-zinc-100 dark:border-zinc-800 pt-4">
             <div class="flex justify-between text-zinc-600 dark:text-zinc-400">
-              <span>Subtotal</span>
+              <span>{{ t('checkout.subtotal') }}</span>
               <span>{{ formatPrice(cartStore.subtotal) }}</span>
             </div>
             <div v-if="cartStore.discount > 0" class="flex justify-between text-green-600 dark:text-green-400">
               <span>
-                Discount
+                {{ t('checkout.discount') }}
                 <span v-if="cartStore.couponCode" class="font-mono text-xs">({{ cartStore.couponCode }})</span>
               </span>
               <span>-{{ formatPrice(cartStore.discount) }}</span>
             </div>
             <div class="flex justify-between text-zinc-600 dark:text-zinc-400">
-              <span>Shipping</span>
-              <span class="text-green-600 dark:text-green-400">Free</span>
+              <span>{{ t('checkout.shipping') }}</span>
+              <span class="text-green-600 dark:text-green-400">{{ t('checkout.free') }}</span>
             </div>
             <USeparator class="my-1" />
             <div class="flex justify-between font-bold text-zinc-900 dark:text-white text-base">
-              <span>Total</span>
+              <span>{{ t('checkout.total') }}</span>
               <span>{{ formatPrice(cartStore.total) }}</span>
             </div>
           </div>
@@ -473,11 +474,11 @@ function formatPrice(n: number) {
         <div class="flex items-center justify-center gap-5 text-xs text-zinc-400">
           <span class="flex items-center gap-1.5">
             <UIcon name="heroicons:lock-closed" class="size-3.5" />
-            Secure checkout
+            {{ t('checkout.secure') }}
           </span>
           <span class="flex items-center gap-1.5">
             <UIcon name="heroicons:shield-check" class="size-3.5" />
-            256-bit SSL
+            {{ t('checkout.ssl') }}
           </span>
         </div>
       </div>

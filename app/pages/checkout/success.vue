@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 useSeoMeta({ title: 'Order Confirmed — Velora Commerce' })
 
 const route = useRoute()
@@ -15,15 +16,14 @@ const orderId = computed(() => route.query.order as string | undefined)
     </div>
 
     <h1 class="font-display text-3xl font-bold text-zinc-900 dark:text-white mb-3">
-      Order Confirmed!
+      {{ t('checkout.orderConfirmed') }}
     </h1>
     <p class="text-zinc-500 dark:text-zinc-400 max-w-md">
-      Thank you for your purchase. We've received your order and will begin processing it shortly.
-      You'll receive an email confirmation soon.
+      {{ t('checkout.confirmationMessage') }}
     </p>
 
     <div v-if="orderId" class="mt-6 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 px-6 py-4">
-      <p class="text-xs text-zinc-400 uppercase tracking-wider mb-1">Order Reference</p>
+      <p class="text-xs text-zinc-400 uppercase tracking-wider mb-1">{{ t('checkout.orderReference') }}</p>
       <p class="font-mono font-semibold text-zinc-900 dark:text-white text-lg">
         #{{ orderId.slice(0, 8).toUpperCase() }}
       </p>
@@ -31,10 +31,10 @@ const orderId = computed(() => route.query.order as string | undefined)
 
     <div class="mt-8 flex items-center gap-3 flex-wrap justify-center">
       <UButton :to="orderId ? `/account/orders/${orderId}` : '/account/orders'" size="lg">
-        View Order
+        {{ t('checkout.viewOrder') }}
       </UButton>
       <UButton to="/shop" color="neutral" variant="outline" size="lg">
-        Continue Shopping
+        {{ t('common.continueShopping') }}
       </UButton>
     </div>
   </div>

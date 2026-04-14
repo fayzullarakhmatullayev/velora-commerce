@@ -21,10 +21,10 @@ const { user, profile, logout } = useAuth()
       <!-- Quick links -->
       <NuxtLink
         v-for="item in [
-          { label: t('nav.orders'), icon: 'heroicons:shopping-bag', to: '/account/orders', desc: 'Track your purchases' },
-          { label: t('nav.wishlist'), icon: 'heroicons:heart', to: '/account/wishlist', desc: 'Saved items' },
-          { label: 'Profile', icon: 'heroicons:user-circle', to: '/account/profile', desc: 'Edit your info' },
-          { label: 'Addresses', icon: 'heroicons:map-pin', to: '/account/addresses', desc: 'Manage delivery addresses' },
+          { label: t('nav.orders'), icon: 'heroicons:shopping-bag', to: '/account/orders', desc: t('account.profileDesc') },
+          { label: t('nav.wishlist'), icon: 'heroicons:heart', to: '/account/wishlist', desc: t('account.wishlist') },
+          { label: t('account.profileLabel'), icon: 'heroicons:user-circle', to: '/account/profile', desc: t('account.profileDesc') },
+          { label: t('account.addressesLabel'), icon: 'heroicons:map-pin', to: '/account/addresses', desc: t('account.addressesDesc') },
         ]"
         :key="item.to"
         :to="item.to"
@@ -50,13 +50,13 @@ const { user, profile, logout } = useAuth()
       />
       <div>
         <p class="font-semibold text-zinc-900 dark:text-white">
-          {{ profile?.full_name ?? 'Welcome!' }}
+          {{ profile?.full_name ?? t('account.welcome') }}
         </p>
         <p class="text-sm text-zinc-400">{{ user?.email }}</p>
-        <VBadge v-if="profile?.role === 'admin'" color="primary" class="mt-1">Admin</VBadge>
+        <VBadge v-if="profile?.role === 'admin'" color="primary" class="mt-1">{{ t('common.admin') }}</VBadge>
       </div>
       <UButton to="/account/profile" color="neutral" variant="ghost" size="sm" class="ml-auto">
-        Edit profile
+        {{ t('account.editProfile') }}
       </UButton>
     </VCard>
   </div>

@@ -86,7 +86,7 @@ async function applyCoupon() {
           </div>
           <div>
             <p class="font-medium text-zinc-700 dark:text-zinc-300">{{ t('cart.empty') }}</p>
-            <p class="mt-1 text-sm text-zinc-400">Add some items to get started</p>
+            <p class="mt-1 text-sm text-zinc-400">{{ t('cart.addItemsHint') }}</p>
           </div>
           <UButton to="/shop" @click="close">{{ t('cart.continueShopping') }}</UButton>
         </div>

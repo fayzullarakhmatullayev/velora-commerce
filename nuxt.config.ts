@@ -3,7 +3,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
 
   devtools: { enabled: true },
-  ssr: false,
 
   // Nuxt 4 app directory
   future: {
@@ -32,7 +31,7 @@ export default defineNuxtConfig({
     ],
     defaultLocale: 'en',
     langDir: '../i18n/locales/',
-    strategy: 'prefix_except_default',
+    strategy: 'no_prefix',
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'velora_locale',

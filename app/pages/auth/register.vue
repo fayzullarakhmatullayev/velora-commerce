@@ -71,7 +71,7 @@ async function submit() {
         <UFormField :label="t('auth.fullName')" name="fullName" required>
           <UInput
             v-model="form.fullName"
-            placeholder="Jane Smith"
+            :placeholder="t('auth.fullNamePlaceholder')"
             autocomplete="name"
             class="w-full"
           />
@@ -91,7 +91,7 @@ async function submit() {
           <UInput
             v-model="form.password"
             type="password"
-            placeholder="Min. 6 characters"
+            :placeholder="t('auth.passwordHint')"
             autocomplete="new-password"
             class="w-full"
           />
@@ -101,7 +101,7 @@ async function submit() {
           <UInput
             v-model="form.confirmPassword"
             type="password"
-            placeholder="Repeat password"
+            :placeholder="t('auth.repeatPassword')"
             autocomplete="new-password"
             class="w-full"
           />
@@ -112,10 +112,10 @@ async function submit() {
         </UButton>
 
         <p class="text-center text-xs text-zinc-400 leading-relaxed">
-          By registering you agree to our
-          <NuxtLink to="/terms" class="underline hover:text-zinc-600">Terms</NuxtLink>
-          and
-          <NuxtLink to="/privacy" class="underline hover:text-zinc-600">Privacy Policy</NuxtLink>.
+          {{ t('auth.agreeToTerms') }}
+          <NuxtLink to="/terms" class="underline hover:text-zinc-600">{{ t('auth.terms') }}</NuxtLink>
+          {{ t('auth.and') }}
+          <NuxtLink to="/privacy" class="underline hover:text-zinc-600">{{ t('auth.privacyPolicy') }}</NuxtLink>.
         </p>
       </form>
     </VCard>

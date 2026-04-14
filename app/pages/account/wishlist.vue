@@ -2,6 +2,7 @@
 definePageMeta({ middleware: 'auth' })
 useSeoMeta({ title: 'Wishlist — Velora Commerce' })
 
+const { t } = useI18n()
 const { store, toggleProduct } = useWishlist()
 const { addProduct } = useCart()
 const supabase = useSupabase()
@@ -34,7 +35,7 @@ async function moveToCart(item: typeof store.items.value[0]) {
     <div class="mb-8 flex items-center gap-3">
       <UButton to="/account" color="neutral" variant="ghost" icon="heroicons:arrow-left" size="sm" />
       <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">
-        Wishlist <span v-if="store.count > 0" class="text-zinc-400 font-normal text-xl">({{ store.count }})</span>
+        {{ t('account.wishlist') }} <span v-if="store.count > 0" class="text-zinc-400 font-normal text-xl">({{ store.count }})</span>
       </h1>
     </div>
 
@@ -44,9 +45,9 @@ async function moveToCart(item: typeof store.items.value[0]) {
       class="flex flex-col items-center justify-center py-24 text-center"
     >
       <UIcon name="heroicons:heart" class="size-16 text-zinc-200 dark:text-zinc-700 mb-4" />
-      <p class="font-medium text-zinc-700 dark:text-zinc-300">Your wishlist is empty</p>
-      <p class="mt-1 text-sm text-zinc-400">Save items you love to buy them later.</p>
-      <UButton to="/shop" class="mt-6">Browse Products</UButton>
+      <p class="font-medium text-zinc-700 dark:text-zinc-300">{{ t('account.emptyWishlist') }}</p>
+      <p class="mt-1 text-sm text-zinc-400">{{ t('account.emptyWishlistDesc') }}</p>
+      <UButton to="/shop" class="mt-6">{{ t('common.browseProducts') }}</UButton>
     </div>
 
     <!-- Grid -->
@@ -74,7 +75,7 @@ async function moveToCart(item: typeof store.items.value[0]) {
 
           <div class="mt-3 flex gap-2">
             <UButton size="sm" class="flex-1" @click="moveToCart(item)">
-              Add to Cart
+              {{ t('account.moveToCart') }}
             </UButton>
             <UButton
               size="sm"

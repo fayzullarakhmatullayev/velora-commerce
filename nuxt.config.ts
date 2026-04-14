@@ -12,6 +12,12 @@ export default defineNuxtConfig({
   // Components: disable path prefix so ui/VSkeleton.vue → <VSkeleton>, not <UiVSkeleton>
   components: [{ path: '~/components', pathPrefix: false }],
 
+  routeRules: {
+    '/admin/**': {
+      ssr: false,
+    },
+  },
+
   // Core modules
   modules: [
     '@nuxt/ui',

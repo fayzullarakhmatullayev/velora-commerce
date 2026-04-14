@@ -5,11 +5,20 @@ useSeoMeta({ title: 'Dashboard — Velora Admin' })
 const { stats, recentOrders, lowStock, revenueChart, chartPending, pending } = useAdminStats()
 
 function formatPrice(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(n)
 }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return new Date(d).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 const statusColor: Record<string, string> = {
@@ -24,7 +33,7 @@ const statusColor: Record<string, string> = {
 
 // Simple bar chart — max value for scaling
 const chartMax = computed(() => {
-  const vals = (revenueChart.value ?? []).map(d => d.revenue)
+  const vals = (revenueChart.value ?? []).map((d) => d.revenue)
   return Math.max(...vals, 1)
 })
 
@@ -41,7 +50,6 @@ function productThumb(images: string[]) {
 
 <template>
   <div class="p-6 lg:p-8 space-y-8">
-
     <!-- Page title -->
     <div>
       <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">Dashboard</h1>
@@ -84,7 +92,6 @@ function productThumb(images: string[]) {
 
     <!-- ── Revenue chart + Low stock ─────────────────────────────────────── -->
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-
       <!-- Revenue chart (last 30 days) -->
       <VCard padding="md" class="xl:col-span-2">
         <div class="flex items-center justify-between mb-4">
@@ -96,7 +103,12 @@ function productThumb(images: string[]) {
 
         <!-- Skeleton -->
         <div v-if="chartPending" class="flex items-end gap-1 h-40">
-          <USkeleton v-for="i in 30" :key="i" class="flex-1 rounded-t-sm" :style="`height:${Math.random()*100}%`" />
+          <USkeleton
+            v-for="i in 30"
+            :key="i"
+            class="flex-1 rounded-t-sm"
+            :style="`height:${Math.random() * 100}%`"
+          />
         </div>
 
         <!-- Chart bars -->
@@ -111,11 +123,17 @@ function productThumb(images: string[]) {
               :style="`height: ${Math.max((point.revenue / chartMax) * 100, point.revenue > 0 ? 4 : 0.5)}%`"
             />
             <!-- Tooltip -->
-            <div class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center pointer-events-none z-10">
-              <div class="rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-[10px] font-semibold px-2 py-1 whitespace-nowrap shadow-lg">
+            <div
+              class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center pointer-events-none z-10"
+            >
+              <div
+                class="rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-[10px] font-semibold px-2 py-1 whitespace-nowrap shadow-lg"
+              >
                 {{ point.date.slice(5) }}: {{ formatPrice(point.revenue) }}
               </div>
-              <div class="w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-zinc-900 dark:border-t-zinc-100" />
+              <div
+                class="w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-zinc-900 dark:border-t-zinc-100"
+              />
             </div>
           </div>
         </div>
@@ -132,7 +150,10 @@ function productThumb(images: string[]) {
       <VCard padding="md">
         <div class="flex items-center justify-between mb-4">
           <h2 class="font-semibold text-zinc-900 dark:text-white">Low Stock</h2>
-          <NuxtLink to="/admin/products" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">
+          <NuxtLink
+            to="/admin/products"
+            class="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+          >
             View all →
           </NuxtLink>
         </div>
@@ -141,17 +162,16 @@ function productThumb(images: string[]) {
           <USkeleton v-for="i in 4" :key="i" class="h-12 w-full rounded-lg" />
         </div>
 
-        <div v-else-if="!lowStock?.length" class="flex flex-col items-center justify-center py-8 text-center">
+        <div
+          v-else-if="!lowStock?.length"
+          class="flex flex-col items-center justify-center py-8 text-center"
+        >
           <UIcon name="heroicons:check-circle" class="size-8 text-emerald-400 mb-2" />
           <p class="text-sm text-zinc-500 dark:text-zinc-400">All products are well stocked</p>
         </div>
 
         <ul v-else class="space-y-2">
-          <li
-            v-for="product in lowStock"
-            :key="product.id"
-            class="flex items-center gap-3"
-          >
+          <li v-for="product in lowStock" :key="product.id" class="flex items-center gap-3">
             <!-- Thumbnail -->
             <div class="size-10 rounded-lg overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800">
               <img
@@ -179,14 +199,18 @@ function productThumb(images: string[]) {
           </li>
         </ul>
       </VCard>
-
     </div>
 
     <!-- ── Recent orders ───────────────────────────────────────────────────── -->
     <VCard padding="none">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
+      <div
+        class="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800"
+      >
         <h2 class="font-semibold text-zinc-900 dark:text-white">Recent Orders</h2>
-        <NuxtLink to="/admin/orders" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">
+        <NuxtLink
+          to="/admin/orders"
+          class="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+        >
           View all →
         </NuxtLink>
       </div>
@@ -202,8 +226,14 @@ function productThumb(images: string[]) {
       </div>
 
       <!-- Empty -->
-      <div v-else-if="!recentOrders?.length" class="flex flex-col items-center justify-center py-16 text-center">
-        <UIcon name="heroicons:shopping-bag" class="size-10 text-zinc-200 dark:text-zinc-700 mb-3" />
+      <div
+        v-else-if="!recentOrders?.length"
+        class="flex flex-col items-center justify-center py-16 text-center"
+      >
+        <UIcon
+          name="heroicons:shopping-bag"
+          class="size-10 text-zinc-200 dark:text-zinc-700 mb-3"
+        />
         <p class="text-sm text-zinc-500 dark:text-zinc-400">No orders yet</p>
       </div>
 
@@ -212,11 +242,31 @@ function productThumb(images: string[]) {
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-zinc-100 dark:border-zinc-800">
-              <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">Order</th>
-              <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">Date</th>
-              <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">Status</th>
-              <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">Payment</th>
-              <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400">Total</th>
+              <th
+                class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400"
+              >
+                Order
+              </th>
+              <th
+                class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400"
+              >
+                Date
+              </th>
+              <th
+                class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400"
+              >
+                Status
+              </th>
+              <th
+                class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400"
+              >
+                Payment
+              </th>
+              <th
+                class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-400"
+              >
+                Total
+              </th>
               <th class="px-5 py-3" />
             </tr>
           </thead>
@@ -235,12 +285,20 @@ function productThumb(images: string[]) {
                 {{ formatDate(order.created_at) }}
               </td>
               <td class="px-5 py-3.5">
-                <UBadge :color="(statusColor[order.status] as any) ?? 'neutral'" variant="subtle" size="sm">
+                <UBadge
+                  :color="(statusColor[order.status] as any) ?? 'neutral'"
+                  variant="subtle"
+                  size="sm"
+                >
                   {{ order.status }}
                 </UBadge>
               </td>
               <td class="px-5 py-3.5">
-                <UBadge :color="order.payment_status === 'paid' ? 'success' : 'warning'" variant="subtle" size="sm">
+                <UBadge
+                  :color="order.payment_status === 'paid' ? 'success' : 'warning'"
+                  variant="subtle"
+                  size="sm"
+                >
                   {{ order.payment_status }}
                 </UBadge>
               </td>
@@ -249,7 +307,12 @@ function productThumb(images: string[]) {
               </td>
               <td class="px-5 py-3.5 text-right">
                 <NuxtLink :to="`/admin/orders/${order.id}`">
-                  <UButton size="xs" color="neutral" variant="ghost" icon="heroicons:arrow-top-right-on-square" />
+                  <UButton
+                    size="xs"
+                    color="neutral"
+                    variant="ghost"
+                    icon="heroicons:arrow-top-right-on-square"
+                  />
                 </NuxtLink>
               </td>
             </tr>
@@ -257,6 +320,5 @@ function productThumb(images: string[]) {
         </table>
       </div>
     </VCard>
-
   </div>
 </template>

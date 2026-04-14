@@ -14,6 +14,17 @@ values (
 )
 on conflict (id) do nothing;
 
+-- Categories bucket (public read)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'categories',
+  'categories',
+  true,
+  5242880, -- 5MB
+  array['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+)
+on conflict (id) do nothing;
+
 -- Avatars bucket (public read)
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
@@ -74,3 +85,21 @@ create policy "avatars_storage_delete_own"
     bucket_id = 'avatars'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- Categories bucket: anyone can view
+create policy "categories_storage_select"
+  on storage.objects for select
+  using (bucket_id = 'categories');
+
+-- Categories bucket: only admins can upload/delete
+create policy "categories_storage_insert_admin"
+  on storage.objects for insert
+  with check (bucket_id = 'categories' and public.is_admin());
+
+create policy "categories_storage_update_admin"
+  on storage.objects for update
+  using (bucket_id = 'categories' and public.is_admin());
+
+create policy "categories_storage_delete_admin"
+  on storage.objects for delete
+  using (bucket_id = 'categories' and public.is_admin());

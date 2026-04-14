@@ -10,18 +10,14 @@ const supabase = useSupabase()
 const toast = useToast()
 const route = useRoute()
 
-const search = ref('')
+// Pre-fill from ?id= query param set by the orders detail "View Customer" link
+const search = ref((route.query.id as string) || '')
 const roleFilter = ref('all')
 const page = ref(1)
 const PAGE_SIZE = 20
 
 // Reset page when filters change
 watch([search, roleFilter], () => { page.value = 1 })
-
-// ── Pre-fill search from query param (?id=…) from the orders detail link ─────
-onMounted(() => {
-  if (route.query.id) search.value = route.query.id as string
-})
 
 // ── Fetch users (profiles) ─────────────────────────────────────────────────────
 const { data, pending, refresh } = useAsyncData(

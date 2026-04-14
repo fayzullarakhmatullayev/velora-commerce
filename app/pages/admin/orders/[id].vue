@@ -51,6 +51,32 @@ async function saveStatus() {
   }
 }
 
+// ── Sync with Stripe ──────────────────────────────────────────────────────────
+const syncing = ref(false)
+
+async function syncStripe() {
+  const intentId = data.value?.order.stripe_payment_intent_id
+  if (!intentId) return
+  syncing.value = true
+  try {
+    const result = await $fetch('/api/admin/sync-stripe', {
+      method: 'POST',
+      body: { paymentIntentId: intentId },
+    }) as { payment_status: string; order_status: string }
+    toast.add({
+      title: 'Synced with Stripe',
+      description: `Payment: ${result.payment_status} · Order: ${result.order_status}`,
+      color: 'success',
+      icon: 'heroicons:check-circle',
+    })
+    await refresh()
+  } catch (err: any) {
+    toast.add({ title: 'Sync failed', description: err.data?.message ?? err.message, color: 'error', icon: 'heroicons:x-circle' })
+  } finally {
+    syncing.value = false
+  }
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const statusColor: Record<string, string> = {
   pending: 'warning',
@@ -242,6 +268,18 @@ function formatDate(d: string) {
                 {{ data.order.stripe_payment_intent_id }}
               </span>
             </div>
+            <UButton
+              v-if="data.order.stripe_payment_intent_id"
+              size="xs"
+              color="neutral"
+              variant="outline"
+              icon="heroicons:arrow-path"
+              class="mt-1 w-full"
+              :loading="syncing"
+              @click="syncStripe"
+            >
+              Sync with Stripe
+            </UButton>
           </div>
         </VCard>
 

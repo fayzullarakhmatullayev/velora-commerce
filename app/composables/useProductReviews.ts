@@ -26,7 +26,7 @@ export const useProductReviews = (productId: Ref<string | undefined>) => {
           .eq('product_id', productId.value)
           .eq('is_approved', true)
           .order('created_at', { ascending: false }),
-        user.value
+        user.value?.id
           ? supabase
               .from('reviews')
               .select('*')
@@ -91,7 +91,7 @@ export const useSubmitReview = () => {
     comment: string,
     onSuccess: () => void,
   ) {
-    if (!user.value) return
+    if (!user.value?.id) return
     submitting.value = true
     try {
       const { error } = await supabase.from('reviews').insert({

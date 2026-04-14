@@ -9,22 +9,22 @@ type AddressInsert = Database['public']['Tables']['addresses']['Insert']
 
 const { t } = useI18n()
 const supabase = useSupabase()
-const user = useSupabaseUser()
 const toast = useToast()
 
 // ── Fetch addresses ───────────────────────────────────────────────────────────
 const { data: addresses, refresh } = useAsyncData('account-addresses', async () => {
-  if (!user.value?.id) return [] as Address[]
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user?.id) return [] as Address[]
 
   const { data, error } = await supabase
     .from('addresses')
     .select('*')
-    .eq('user_id', user.value.id)
+    .eq('user_id', session.user.id)
     .order('is_default', { ascending: false })
 
   if (error) throw error
   return data as Address[]
-}, { default: () => [] as Address[], watch: [user] })
+}, { default: () => [] as Address[], getCachedData: () => undefined })
 
 // ── Modal state ───────────────────────────────────────────────────────────────
 const modalOpen = ref(false)
@@ -83,9 +83,11 @@ async function save() {
         .eq('id', editing.value.id)
       if (error) throw error
     } else {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user?.id) throw new Error('Not authenticated')
       const { error } = await supabase
         .from('addresses')
-        .insert({ ...form, user_id: user.value!.id })
+        .insert({ ...form, user_id: session.user.id })
       if (error) throw error
     }
 
@@ -100,8 +102,10 @@ async function save() {
 }
 
 async function setDefault(id: string) {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user?.id) return
   // Unset all, then set selected
-  await supabase.from('addresses').update({ is_default: false }).eq('user_id', user.value!.id)
+  await supabase.from('addresses').update({ is_default: false }).eq('user_id', session.user.id)
   await supabase.from('addresses').update({ is_default: true }).eq('id', id)
   await refresh()
 }

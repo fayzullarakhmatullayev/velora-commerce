@@ -4,17 +4,20 @@
 // Usage: definePageMeta({ middleware: 'admin' })
 // ─────────────────────────────────────────────────────────────────────────────
 export default defineNuxtRouteMiddleware(async () => {
-  const user = useSupabaseUser()
+  const supabase = useSupabaseClient()
 
-  if (!user.value) {
+  // Always resolve from the live session — useSupabaseUser() may not have
+  // the user.id populated yet when the middleware fires on cold navigation.
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session?.user?.id) {
     return navigateTo('/auth/login')
   }
 
-  const supabase = useSupabaseClient()
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
-    .eq('id', user.value.id)
+    .eq('id', session.user.id)
     .single()
 
   if (profile?.role !== 'admin') {

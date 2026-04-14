@@ -121,7 +121,7 @@ const { categories, getCategoryName } = useCategories()
           <p
             class="text-xs font-semibold uppercase tracking-widest text-primary-600 dark:text-primary-400 mb-2"
           >
-            Browse
+            {{ t('home.browse') }}
           </p>
           <h2 class="font-display text-3xl font-bold text-zinc-900 dark:text-white">
             {{ t('home.categories') }}

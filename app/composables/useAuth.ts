@@ -20,7 +20,10 @@ export const useAuth = () => {
 
   // ── Load profile whenever user changes ────────────────────────────────────
   const loadProfile = async () => {
-    if (!user.value) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session?.user?.id) {
       profile.value = null
       return
     }
@@ -28,7 +31,7 @@ export const useAuth = () => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', user.value.id)
+      .eq('id', session.user.id)
       .single()
 
     if (!error && data) {
@@ -85,12 +88,15 @@ export const useAuth = () => {
 
   // ── Profile update ────────────────────────────────────────────────────────
   const updateProfile = async (updates: Database['public']['Tables']['profiles']['Update']) => {
-    if (!user.value) throw new Error(t('auth.login'))
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session?.user?.id) throw new Error(t('auth.login'))
 
     const { data, error } = await supabase
       .from('profiles')
       .update(updates)
-      .eq('id', user.value.id)
+      .eq('id', session.user.id)
       .select()
       .single()
 

@@ -20,14 +20,15 @@ onMounted(() => {
 
 // ── Fetch saved addresses ─────────────────────────────────────────────────────
 const { data: addresses } = useAsyncData('checkout-addresses', async () => {
-  if (!user.value?.id) return []
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user?.id) return []
   const { data } = await supabase
     .from('addresses')
     .select('*')
-    .eq('user_id', user.value.id)
+    .eq('user_id', session.user.id)
     .order('is_default', { ascending: false })
   return data ?? []
-}, { default: () => [], watch: [user] })
+}, { default: () => [], getCachedData: () => undefined })
 
 const selectedAddressId = ref<string | null>(null)
 const useNewAddress = ref(true)
@@ -91,10 +92,11 @@ async function continueToPayment() {
 
   loadingIntent.value = true
   try {
+    const { data: { session: intentSession } } = await supabase.auth.getSession()
     const amountCents = Math.round(cartStore.total * 100)
     const res = await $fetch<{ clientSecret: string; intentId: string }>('/api/checkout/intent', {
       method: 'POST',
-      body: { amount: amountCents, metadata: { user_id: user.value!.id } },
+      body: { amount: amountCents, metadata: { user_id: intentSession?.user?.id ?? '' } },
     })
     clientSecret.value = res.clientSecret
     intentId.value = res.intentId

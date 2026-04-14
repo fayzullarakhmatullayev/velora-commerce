@@ -11,7 +11,9 @@ const route = useRoute()
 const supabase = useSupabase()
 
 const { data, pending } = useAsyncData(`order-${route.params.id}`, async () => {
-  const { data: { session } } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
   if (!session?.user?.id) return null
 
   const { data: order, error: orderError } = await supabase
@@ -33,7 +35,13 @@ const { data, pending } = useAsyncData(`order-${route.params.id}`, async () => {
   return { order: order as Order, items: items as OrderItem[] }
 })
 
-useSeoMeta({ title: computed(() => data.value ? `Order #${data.value.order.id.slice(0, 8).toUpperCase()} — Velora Commerce` : 'Order — Velora Commerce') })
+useSeoMeta({
+  title: computed(() =>
+    data.value
+      ? `Order #${data.value.order.id.slice(0, 8).toUpperCase()} — Velora Commerce`
+      : 'Order — Velora Commerce',
+  ),
+})
 
 const statusColor: Record<string, string> = {
   pending: 'warning',
@@ -54,7 +62,13 @@ const currentStep = computed(() => {
 })
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 function formatPrice(n: number) {
@@ -66,12 +80,21 @@ function formatPrice(n: number) {
   <div class="velora-container py-10">
     <!-- Header -->
     <div class="mb-8 flex items-center gap-3">
-      <UButton to="/account/orders" color="neutral" variant="ghost" icon="heroicons:arrow-left" size="sm" />
+      <UButton
+        to="/account/orders"
+        color="neutral"
+        variant="ghost"
+        icon="heroicons:arrow-left"
+        size="sm"
+      />
       <div>
         <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">
-          Order <span v-if="data" class="font-mono">#{{ data.order.id.slice(0, 8).toUpperCase() }}</span>
+          Order
+          <span v-if="data" class="font-mono">#{{ data.order.id.slice(0, 8).toUpperCase() }}</span>
         </h1>
-        <p v-if="data" class="mt-0.5 text-sm text-zinc-400">Placed {{ formatDate(data.order.created_at) }}</p>
+        <p v-if="data" class="mt-0.5 text-sm text-zinc-400">
+          Placed {{ formatDate(data.order.created_at) }}
+        </p>
       </div>
     </div>
 
@@ -88,12 +111,17 @@ function formatPrice(n: number) {
         <!-- Status tracker -->
         <VCard padding="md">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="font-semibold text-zinc-900 dark:text-white">{{ t('account.orderStatus') }}</h2>
+            <h2 class="font-semibold text-zinc-900 dark:text-white">
+              {{ t('account.orderStatus') }}
+            </h2>
             <UBadge :color="(statusColor[data.order.status] as any) ?? 'neutral'" variant="subtle">
               {{ data.order.status }}
             </UBadge>
           </div>
-          <div v-if="!['cancelled', 'refunded'].includes(data.order.status)" class="flex items-center gap-0">
+          <div
+            v-if="!['cancelled', 'refunded'].includes(data.order.status)"
+            class="flex items-center gap-0"
+          >
             <template v-for="(step, i) in statusSteps" :key="step">
               <div class="flex flex-col items-center gap-1 flex-1">
                 <div
@@ -107,7 +135,9 @@ function formatPrice(n: number) {
                   <UIcon v-if="i < currentStep" name="heroicons:check" class="size-3.5" />
                   <span v-else>{{ i + 1 }}</span>
                 </div>
-                <span class="text-[10px] capitalize text-zinc-500 dark:text-zinc-400">{{ step }}</span>
+                <span class="text-[10px] capitalize text-zinc-500 dark:text-zinc-400">{{
+                  step
+                }}</span>
               </div>
               <div
                 v-if="i < statusSteps.length - 1"
@@ -120,16 +150,31 @@ function formatPrice(n: number) {
 
         <!-- Order items -->
         <VCard padding="md">
-          <h2 class="font-semibold text-zinc-900 dark:text-white mb-4">{{ t('account.items', { count: data.items.length }) }}</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white mb-4">
+            {{ t('account.items', { count: data.items.length }) }}
+          </h2>
           <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
-            <li v-for="item in data.items" :key="item.id" class="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
+            <li
+              v-for="item in data.items"
+              :key="item.id"
+              class="flex items-center gap-4 py-3 first:pt-0 last:pb-0"
+            >
               <div class="size-14 rounded-lg overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800">
-                <img v-if="item.image" :src="item.image" :alt="item.title" class="size-full object-cover" />
+                <img
+                  v-if="item.image"
+                  :src="item.image"
+                  :alt="item.title"
+                  class="size-full object-cover"
+                />
                 <UIcon v-else name="heroicons:photo" class="size-full p-3 text-zinc-400" />
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-zinc-900 dark:text-white truncate">{{ item.title }}</p>
-                <p class="text-xs text-zinc-400 mt-0.5">{{ t('common.qty') }}: {{ item.quantity }}</p>
+                <p class="text-sm font-medium text-zinc-900 dark:text-white truncate">
+                  {{ item.title }}
+                </p>
+                <p class="text-xs text-zinc-400 mt-0.5">
+                  {{ t('common.qty') }}: {{ item.quantity }}
+                </p>
               </div>
               <p class="text-sm font-semibold text-zinc-900 dark:text-white shrink-0">
                 {{ formatPrice(item.price * item.quantity) }}
@@ -140,11 +185,16 @@ function formatPrice(n: number) {
 
         <!-- Shipping address -->
         <VCard padding="md">
-          <h2 class="font-semibold text-zinc-900 dark:text-white mb-3">{{ t('account.shippingAddress') }}</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white mb-3">
+            {{ t('account.shippingAddress') }}
+          </h2>
           <address class="not-italic text-sm text-zinc-600 dark:text-zinc-300 space-y-0.5">
             <p class="font-medium">{{ data.order.shipping_address.full_name }}</p>
             <p>{{ data.order.shipping_address.street }}</p>
-            <p>{{ data.order.shipping_address.city }}, {{ data.order.shipping_address.state }} {{ data.order.shipping_address.postal_code }}</p>
+            <p>
+              {{ data.order.shipping_address.city }}, {{ data.order.shipping_address.state }}
+              {{ data.order.shipping_address.postal_code }}
+            </p>
             <p>{{ data.order.shipping_address.country }}</p>
             <p class="text-zinc-400 mt-1">{{ data.order.shipping_address.phone }}</p>
           </address>
@@ -154,14 +204,24 @@ function formatPrice(n: number) {
       <!-- Right: summary -->
       <div class="space-y-6">
         <VCard padding="md">
-          <h2 class="font-semibold text-zinc-900 dark:text-white mb-4">{{ t('account.orderSummary') }}</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white mb-4">
+            {{ t('account.orderSummary') }}
+          </h2>
           <div class="space-y-2 text-sm">
             <div class="flex justify-between text-zinc-600 dark:text-zinc-400">
               <span>{{ t('account.subtotal') }}</span>
               <span>{{ formatPrice(data.order.subtotal) }}</span>
             </div>
-            <div v-if="data.order.discount > 0" class="flex justify-between text-green-600 dark:text-green-400">
-              <span>{{ t('account.discount') }} <span v-if="data.order.coupon_code" class="font-mono text-xs">({{ data.order.coupon_code }})</span></span>
+            <div
+              v-if="data.order.discount > 0"
+              class="flex justify-between text-green-600 dark:text-green-400"
+            >
+              <span
+                >{{ t('account.discount') }}
+                <span v-if="data.order.coupon_code" class="font-mono text-xs"
+                  >({{ data.order.coupon_code }})</span
+                ></span
+              >
               <span>-{{ formatPrice(data.order.discount) }}</span>
             </div>
             <div class="flex justify-between text-zinc-600 dark:text-zinc-400">
@@ -177,15 +237,23 @@ function formatPrice(n: number) {
         </VCard>
 
         <VCard padding="md">
-          <h2 class="font-semibold text-zinc-900 dark:text-white mb-3">{{ t('account.payment') }}</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white mb-3">
+            {{ t('account.payment') }}
+          </h2>
           <div class="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
             <div class="flex justify-between">
               <span>{{ t('account.paymentMethod') }}</span>
-              <span class="font-medium text-zinc-900 dark:text-white">{{ t('account.paymentCard') }}</span>
+              <span class="font-medium text-zinc-900 dark:text-white">{{
+                t('account.paymentCard')
+              }}</span>
             </div>
             <div class="flex justify-between">
               <span>{{ t('account.paymentStatus') }}</span>
-              <UBadge :color="data.order.payment_status === 'paid' ? 'success' : 'warning'" variant="subtle" size="sm">
+              <UBadge
+                :color="data.order.payment_status === 'paid' ? 'success' : 'warning'"
+                variant="subtle"
+                size="sm"
+              >
                 {{ data.order.payment_status }}
               </UBadge>
             </div>
@@ -196,9 +264,14 @@ function formatPrice(n: number) {
 
     <!-- Not found -->
     <div v-else class="flex flex-col items-center justify-center py-24 text-center">
-      <UIcon name="heroicons:exclamation-circle" class="size-16 text-zinc-200 dark:text-zinc-700 mb-4" />
+      <UIcon
+        name="heroicons:exclamation-circle"
+        class="size-16 text-zinc-200 dark:text-zinc-700 mb-4"
+      />
       <p class="font-medium text-zinc-700 dark:text-zinc-300">{{ t('account.orderNotFound') }}</p>
-      <UButton to="/account/orders" class="mt-6" color="neutral" variant="outline">{{ t('account.backToOrders') }}</UButton>
+      <UButton to="/account/orders" class="mt-6" color="neutral" variant="outline">{{
+        t('account.backToOrders')
+      }}</UButton>
     </div>
   </div>
 </template>

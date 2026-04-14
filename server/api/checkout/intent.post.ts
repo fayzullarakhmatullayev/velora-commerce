@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, message: 'Stripe is not configured' })
   }
 
-  const body = await readBody<{ amount: number; currency?: string; metadata?: Record<string, string> }>(event)
+  const body = await readBody<{ amount: number; currency?: string; receipt_email?: string; metadata?: Record<string, string> }>(event)
 
   if (!body.amount || body.amount < 50) {
     throw createError({ statusCode: 400, message: 'Invalid amount (minimum 50 cents)' })
@@ -26,6 +26,7 @@ export default defineEventHandler(async (event) => {
     // Explicitly allow only card — avoids warnings for unactivated methods
     // (Link, Cash App, Apple Pay). Add more here once activated in the dashboard.
     payment_method_types: ['card'],
+    receipt_email: body.receipt_email ?? undefined,
     metadata: body.metadata ?? {},
   })
 

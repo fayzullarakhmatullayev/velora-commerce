@@ -53,7 +53,7 @@ const hasActiveFilters = computed(
     >
       <span class="flex items-center gap-2">
         <span class="text-base">🏷️</span>
-        On Sale Only
+        {{ t('product.onSaleOnly') }}
       </span>
       <div
         class="h-5 w-9 rounded-full transition-colors relative"

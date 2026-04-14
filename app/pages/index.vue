@@ -151,7 +151,7 @@ const heroPrice = computed(() => featuredProducts.value[0]?.price ?? 29)
               <div
                 class="absolute -bottom-4 -left-5 z-20 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl ring-1 ring-zinc-100 dark:ring-zinc-800 px-4 py-3"
               >
-                <p class="text-[10px] text-zinc-400 font-medium leading-none mb-1">Starting from</p>
+                <p class="text-[10px] text-zinc-400 font-medium leading-none mb-1">{{ t('home.startingFrom') }}</p>
                 <p class="text-lg font-bold text-zinc-900 dark:text-white leading-none">
                   ${{ heroPrice.toFixed(0) }}
                 </p>
@@ -176,7 +176,7 @@ const heroPrice = computed(() => featuredProducts.value[0]?.price ?? 29)
                   <p class="text-xs font-bold text-zinc-900 dark:text-white leading-none">
                     4.9 / 5
                   </p>
-                  <p class="text-[10px] text-zinc-400 mt-0.5">50K+ reviews</p>
+                  <p class="text-[10px] text-zinc-400 mt-0.5">{{ t('home.heroReviews') }}</p>
                 </div>
               </div>
             </div>
@@ -196,9 +196,9 @@ const heroPrice = computed(() => featuredProducts.value[0]?.price ?? 29)
                 </div>
                 <div>
                   <p class="text-xs font-bold text-zinc-900 dark:text-white leading-none">
-                    Free Shipping
+                    {{ t('home.freeShipping') }}
                   </p>
-                  <p class="text-[10px] text-zinc-400 mt-0.5">On orders over $50</p>
+                  <p class="text-[10px] text-zinc-400 mt-0.5">{{ t('home.ordersOver50') }}</p>
                 </div>
               </div>
             </div>
@@ -220,14 +220,10 @@ const heroPrice = computed(() => featuredProducts.value[0]?.price ?? 29)
         <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div
             v-for="item in [
-              { icon: 'heroicons:truck', label: 'Free Shipping', sub: 'Orders over $50' },
-              { icon: 'heroicons:arrow-uturn-left', label: 'Easy Returns', sub: '30-day policy' },
-              { icon: 'heroicons:shield-check', label: 'Secure Payment', sub: '100% protected' },
-              {
-                icon: 'heroicons:chat-bubble-left-ellipsis',
-                label: '24/7 Support',
-                sub: 'Always here for you',
-              },
+              { icon: 'heroicons:truck', label: t('home.freeShipping'), sub: t('home.ordersOver50') },
+              { icon: 'heroicons:arrow-uturn-left', label: t('home.easyReturns'), sub: t('home.thirtyDayPolicy') },
+              { icon: 'heroicons:shield-check', label: t('home.securePayment'), sub: t('home.hundredProtected') },
+              { icon: 'heroicons:chat-bubble-left-ellipsis', label: t('home.support247'), sub: t('home.alwaysHere') },
             ]"
             :key="item.label"
             class="flex items-center gap-3 py-1"
@@ -255,7 +251,7 @@ const heroPrice = computed(() => featuredProducts.value[0]?.price ?? 29)
           <p
             class="text-xs font-semibold uppercase tracking-widest text-rose-500 dark:text-rose-400 mb-2"
           >
-            Curated for you
+            {{ t('home.curatedFor') }}
           </p>
           <h2 class="font-display text-3xl font-bold text-zinc-900 dark:text-white">
             {{ t('home.featuredTitle') }}
@@ -298,15 +294,15 @@ const heroPrice = computed(() => featuredProducts.value[0]?.price ?? 29)
           </div>
           <div class="relative z-10">
             <p class="text-xs font-bold uppercase tracking-widest text-white/70 mb-2">
-              Limited Time
+              {{ t('home.limitedTime') }}
             </p>
             <h3 class="font-display text-3xl font-bold text-white mb-5 leading-tight">
-              Summer Sale<br />Up to 50% Off
+              {{ t('home.summerSale') }}<br />{{ t('home.upTo50Off') }}
             </h3>
             <span
               class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-zinc-900 group-hover:bg-zinc-100 transition-colors shadow-lg"
             >
-              Shop Sale
+              {{ t('home.shopSale') }}
               <UIcon
                 name="heroicons:arrow-right"
                 class="size-4 group-hover:translate-x-0.5 transition-transform"
@@ -340,15 +336,15 @@ const heroPrice = computed(() => featuredProducts.value[0]?.price ?? 29)
           </div>
           <div class="relative z-10">
             <p class="text-xs font-bold uppercase tracking-widest text-rose-400 mb-2">
-              Just Dropped
+              {{ t('home.justDropped') }}
             </p>
             <h3 class="font-display text-3xl font-bold text-white mb-5 leading-tight">
-              New Arrivals<br />This Season
+              {{ t('home.newArrivals') }}<br />{{ t('home.thisSeason') }}
             </h3>
             <span
               class="inline-flex items-center gap-2 rounded-full bg-rose-500 px-5 py-2.5 text-sm font-semibold text-white group-hover:bg-rose-600 transition-colors shadow-lg shadow-rose-500/30"
             >
-              Explore New
+              {{ t('home.exploreNew') }}
               <UIcon
                 name="heroicons:arrow-right"
                 class="size-4 group-hover:translate-x-0.5 transition-transform"

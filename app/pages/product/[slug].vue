@@ -274,7 +274,7 @@ function formatDate(d: string) {
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10">
           <div>
             <h2 class="font-display text-2xl font-bold text-zinc-900 dark:text-white mb-2">
-              Customer Reviews
+              {{ t('product.reviewsTitle') }}
             </h2>
             <!-- Rating summary -->
             <div v-if="reviews.length" class="flex items-center gap-3">
@@ -289,10 +289,10 @@ function formatDate(d: string) {
               </div>
               <span class="text-xl font-bold text-zinc-900 dark:text-white">{{ avgRating.toFixed(1) }}</span>
               <span class="text-sm text-zinc-400">
-                based on {{ reviews.length }} review{{ reviews.length !== 1 ? 's' : '' }}
+                {{ t('product.basedOn') }} {{ reviews.length }} {{ reviews.length !== 1 ? t('product.reviewPlural') : t('product.reviewSingular') }}
               </span>
             </div>
-            <p v-else class="text-sm text-zinc-400">No reviews yet</p>
+            <p v-else class="text-sm text-zinc-400">{{ t('product.noReviewsYet') }}</p>
           </div>
 
           <!-- CTA -->
@@ -303,11 +303,11 @@ function formatDate(d: string) {
               size="md"
               @click="showForm = true"
             >
-              Write a Review
+              {{ t('product.writeReview') }}
             </UButton>
             <NuxtLink v-else-if="!user" to="/auth/login">
               <UButton icon="heroicons:user" size="md" variant="outline" color="neutral">
-                Log in to review
+                {{ t('product.loginToReview') }}
               </UButton>
             </NuxtLink>
           </div>
@@ -323,7 +323,7 @@ function formatDate(d: string) {
               <UIcon name="heroicons:clock" class="size-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div class="flex-1 min-w-0">
-              <p class="font-semibold text-amber-900 dark:text-amber-200 text-sm">Your review is pending approval</p>
+              <p class="font-semibold text-amber-900 dark:text-amber-200 text-sm">{{ t('product.reviewPending') }}</p>
               <div class="flex items-center gap-1 mt-1.5 mb-1">
                 <UIcon
                   v-for="s in 5"
@@ -348,7 +348,7 @@ function formatDate(d: string) {
           >
             <!-- Form header -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-800">
-              <h3 class="font-semibold text-zinc-900 dark:text-white">Share your experience</h3>
+              <h3 class="font-semibold text-zinc-900 dark:text-white">{{ t('product.shareExperience') }}</h3>
               <button
                 class="flex h-7 w-7 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 transition-colors"
                 @click="showForm = false; reviewRating = 0; reviewComment = ''"
@@ -361,7 +361,7 @@ function formatDate(d: string) {
               <!-- Star picker -->
               <div class="space-y-2">
                 <label class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                  Overall rating <span class="text-red-500">*</span>
+                  {{ t('product.overallRating') }} <span class="text-red-500">*</span>
                 </label>
                 <div class="flex items-center gap-2">
                   <div class="flex items-center gap-1">
@@ -387,7 +387,7 @@ function formatDate(d: string) {
                       v-if="reviewRating"
                       class="text-sm font-semibold px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
                     >
-                      {{ ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'][reviewRating] }}
+                      {{ reviewRating ? t(`product.ratingLabels.${reviewRating}`) : '' }}
                     </span>
                   </Transition>
                 </div>
@@ -396,12 +396,12 @@ function formatDate(d: string) {
               <!-- Comment -->
               <div class="space-y-2">
                 <label class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                  Comment
-                  <span class="ml-1 text-xs font-normal text-zinc-400">(optional)</span>
+                  {{ t('product.reviewCommentLabel') }}
+                  <span class="ml-1 text-xs font-normal text-zinc-400">{{ t('product.reviewCommentOptional') }}</span>
                 </label>
                 <UTextarea
                   v-model="reviewComment"
-                  placeholder="What did you like or dislike? How was the quality? Would you recommend it?"
+                  :placeholder="t('product.reviewPlaceholder')"
                   :rows="4"
                   class="w-full"
                 />
@@ -416,7 +416,7 @@ function formatDate(d: string) {
                   class="shadow-sm shadow-primary-500/20"
                   @click="handleSubmitReview"
                 >
-                  Submit Review
+                  {{ t('product.submitReview') }}
                 </UButton>
                 <UButton
                   size="md"
@@ -424,7 +424,7 @@ function formatDate(d: string) {
                   variant="ghost"
                   @click="showForm = false; reviewRating = 0; reviewComment = ''"
                 >
-                  Cancel
+                  {{ t('common.cancel') }}
                 </UButton>
               </div>
             </div>
@@ -452,10 +452,10 @@ function formatDate(d: string) {
           <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-800">
             <UIcon name="heroicons:chat-bubble-left-right" class="size-8 text-zinc-400 dark:text-zinc-500" />
           </div>
-          <p class="font-semibold text-zinc-700 dark:text-zinc-300 mb-1">No reviews yet</p>
-          <p class="text-sm text-zinc-400 mb-5">Be the first to share your thoughts on this product.</p>
+          <p class="font-semibold text-zinc-700 dark:text-zinc-300 mb-1">{{ t('product.noReviewsYet') }}</p>
+          <p class="text-sm text-zinc-400 mb-5">{{ t('product.noReviewsDesc') }}</p>
           <UButton v-if="canReview && !showForm" icon="heroicons:pencil-square" variant="outline" color="neutral" @click="showForm = true">
-            Write the first review
+            {{ t('product.writeFirstReview') }}
           </UButton>
         </div>
 
@@ -482,7 +482,7 @@ function formatDate(d: string) {
               <!-- Name + date -->
               <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mb-2">
                 <span class="font-semibold text-sm text-zinc-900 dark:text-white">
-                  {{ review.profile.full_name ?? 'Anonymous' }}
+                  {{ review.profile.full_name ?? t('product.anonymous') }}
                 </span>
                 <span class="text-zinc-300 dark:text-zinc-600 text-xs">•</span>
                 <span class="text-xs text-zinc-400">{{ formatDate(review.created_at) }}</span>
@@ -508,7 +508,7 @@ function formatDate(d: string) {
               <p v-if="review.comment" class="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
                 {{ review.comment }}
               </p>
-              <p v-else class="text-sm text-zinc-400 italic">No written review</p>
+              <p v-else class="text-sm text-zinc-400 italic">{{ t('product.noWrittenReview') }}</p>
             </div>
           </div>
         </div>

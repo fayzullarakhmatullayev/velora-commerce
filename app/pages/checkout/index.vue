@@ -96,7 +96,11 @@ async function continueToPayment() {
     const amountCents = Math.round(cartStore.total * 100)
     const res = await $fetch<{ clientSecret: string; intentId: string }>('/api/checkout/intent', {
       method: 'POST',
-      body: { amount: amountCents, metadata: { user_id: intentSession?.user?.id ?? '' } },
+      body: {
+        amount: amountCents,
+        receipt_email: intentSession?.user?.email ?? undefined,
+        metadata: { user_id: intentSession?.user?.id ?? '' },
+      },
     })
     clientSecret.value = res.clientSecret
     intentId.value = res.intentId

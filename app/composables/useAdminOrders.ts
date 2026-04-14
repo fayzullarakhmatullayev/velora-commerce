@@ -28,7 +28,7 @@ export const useAdminOrders = (opts?: {
         .select('id, user_id, status, payment_status, total, created_at', { count: 'exact' })
         .order('created_at', { ascending: false })
 
-      if (status.value) {
+      if (status.value && status.value !== 'all') {
         query = query.eq('status', status.value)
       }
       if (search.value.trim()) {

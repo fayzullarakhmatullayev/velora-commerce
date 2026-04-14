@@ -2,7 +2,7 @@
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useSeoMeta({ title: 'Orders — Velora Admin' })
 
-const status = ref('')
+const status = ref('all')
 const search = ref('')
 const page = ref(1)
 
@@ -15,7 +15,7 @@ const { orders, total, totalPages, pending, refresh } = useAdminOrders({ status,
 watch([status, search, page], () => refresh())
 
 const statusOptions = [
-  { label: 'All Statuses', value: '' },
+  { label: 'All Statuses', value: 'all' },
   { label: 'Pending', value: 'pending' },
   { label: 'Paid', value: 'paid' },
   { label: 'Processing', value: 'processing' },

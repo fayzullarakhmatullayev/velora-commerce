@@ -137,6 +137,7 @@ function initials(name: string | null) {
             placeholder="Search by name or user ID…"
             icon="heroicons:magnifying-glass"
             size="sm"
+            class="w-full"
           />
         </div>
         <USelect
@@ -208,7 +209,7 @@ function initials(name: string | null) {
                     <p class="font-medium text-zinc-900 dark:text-white truncate">
                       {{ user.full_name ?? '—' }}
                     </p>
-                    <p class="font-mono text-[11px] text-zinc-400 truncate max-w-[160px]">{{ user.id }}</p>
+                    <p class="font-mono text-[11px] text-zinc-400 truncate max-w-40">{{ user.id }}</p>
                   </div>
                 </div>
               </td>

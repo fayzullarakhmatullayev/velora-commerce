@@ -76,7 +76,7 @@ const pageTo = computed(() => Math.min(page.value * 20, total.value))
             placeholder="Search by order ID…"
             icon="heroicons:magnifying-glass"
             size="sm"
-            :ui="{ base: 'w-full' }"
+            class="w-full"
           />
         </div>
         <!-- Status filter -->

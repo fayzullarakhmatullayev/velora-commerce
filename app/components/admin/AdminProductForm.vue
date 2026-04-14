@@ -264,40 +264,24 @@ function onTagKeydown(e: KeyboardEvent) {
     <!-- ── Images ────────────────────────────────────────────────────────────── -->
     <VCard padding="md">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-semibold text-zinc-900 dark:text-white">Images</h2>
+        <div>
+          <h2 class="font-semibold text-zinc-900 dark:text-white">Images</h2>
+          <p class="text-xs text-zinc-400 mt-0.5">Upload files or paste URLs. First image is the thumbnail.</p>
+        </div>
         <UButton type="button" size="xs" color="neutral" variant="outline" icon="heroicons:plus" @click="addImage">
-          Add URL
+          Add slot
         </UButton>
       </div>
 
-      <div class="space-y-2">
-        <div
+      <div class="space-y-3">
+        <AdminImageUpload
           v-for="(img, index) in form.images"
           :key="index"
-          class="flex items-center gap-2"
-        >
-          <!-- Thumbnail preview -->
-          <div class="size-9 rounded-lg overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-            <img v-if="img.trim()" :src="img" class="size-full object-cover" @error="($event.target as HTMLImageElement).style.display='none'" />
-            <UIcon v-else name="heroicons:photo" class="size-full p-2 text-zinc-400" />
-          </div>
-          <UInput
-            :model-value="img"
-            placeholder="https://example.com/image.jpg"
-            size="sm"
-            class="flex-1"
-            @update:model-value="updateImage(index, $event)"
-          />
-          <UButton
-            type="button"
-            size="sm"
-            color="error"
-            variant="ghost"
-            icon="heroicons:trash"
-            :disabled="form.images.length === 1"
-            @click="removeImage(index)"
-          />
-        </div>
+          :model-value="img"
+          :index="index"
+          @update:model-value="updateImage(index, $event)"
+          @remove="removeImage(index)"
+        />
       </div>
     </VCard>
 

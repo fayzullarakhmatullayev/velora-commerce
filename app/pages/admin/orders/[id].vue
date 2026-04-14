@@ -97,9 +97,7 @@ function formatDate(d: string) {
       <div v-if="data" class="flex items-center gap-2 shrink-0">
         <USelect
           v-model="selectedStatus"
-          :options="statusOptions"
-          option-attribute="label"
-          value-attribute="value"
+          :items="statusOptions"
           size="sm"
           class="w-40"
         />

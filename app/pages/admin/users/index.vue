@@ -141,9 +141,7 @@ function initials(name: string | null) {
         </div>
         <USelect
           v-model="roleFilter"
-          :options="roleOptions"
-          option-attribute="label"
-          value-attribute="value"
+          :items="roleOptions"
           size="sm"
           class="w-full sm:w-36"
         />
@@ -237,9 +235,7 @@ function initials(name: string | null) {
                 <div class="flex items-center gap-2">
                   <USelect
                     :model-value="user.role"
-                    :options="roleSelectOptions"
-                    option-attribute="label"
-                    value-attribute="value"
+                    :items="roleSelectOptions"
                     size="xs"
                     class="w-24"
                     :disabled="updatingId === user.id"

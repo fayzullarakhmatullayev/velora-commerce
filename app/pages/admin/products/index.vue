@@ -120,9 +120,7 @@ const pageTo = computed(() => Math.min(page.value * 20, total.value))
         </div>
         <USelect
           v-model="statusFilter"
-          :options="statusOptions"
-          option-attribute="label"
-          value-attribute="value"
+          :items="statusOptions"
           size="sm"
           class="w-full sm:w-36"
         />

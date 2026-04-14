@@ -213,9 +213,7 @@ function onTagKeydown(e: KeyboardEvent) {
         <UFormField label="Category">
           <USelect
             :model-value="form.category_id"
-            :options="categoryOptions"
-            option-attribute="label"
-            value-attribute="value"
+            :items="categoryOptions"
             size="sm"
             class="w-full"
             @update:model-value="patch({ category_id: ($event as string) ?? '' })"

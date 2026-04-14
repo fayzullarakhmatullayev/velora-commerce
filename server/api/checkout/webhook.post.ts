@@ -57,7 +57,11 @@ export default defineEventHandler(async (event) => {
       if (charge.payment_intent) {
         await supabase
           .from('orders')
-          .update({ status: 'refunded', payment_status: 'refunded', updated_at: new Date().toISOString() })
+          .update({
+            status: 'refunded',
+            payment_status: 'refunded',
+            updated_at: new Date().toISOString(),
+          })
           .eq('stripe_payment_intent_id', charge.payment_intent as string)
       }
       break

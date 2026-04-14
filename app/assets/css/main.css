@@ -5,8 +5,8 @@
    Vue components. Without it the plugin skips this file entirely.
    ───────────────────────────────────────────────────────────────────────────── */
 
-@import "tailwindcss";
-@import "@nuxt/ui";
+@import 'tailwindcss';
+@import '@nuxt/ui';
 
 /* ── Google Fonts are loaded in nuxt.config head, just apply them here ─────── */
 @layer base {
@@ -91,7 +91,7 @@
   /* Container with consistent padding */
   .velora-container {
     width: 100%;
-    max-width: 1280px;
+    max-width: 1480px;
     margin-inline: auto;
     padding-inline: 1.25rem;
   }
@@ -102,7 +102,7 @@
     }
   }
 
-  @media (min-width: 1280px) {
+  @media (min-width: 1480px) {
     .velora-container {
       padding-inline: 2.5rem;
     }
@@ -110,7 +110,12 @@
 
   /* Premium gradient text */
   .gradient-text {
-    background: linear-gradient(135deg, oklch(55% 0.22 10) 0%, oklch(70% 0.18 350) 50%, oklch(60% 0.2 25) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(55% 0.22 10) 0%,
+      oklch(70% 0.18 350) 50%,
+      oklch(60% 0.2 25) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -118,15 +123,29 @@
 
   /* Floating animation for hero elements */
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
   }
   @keyframes float-delayed {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-6px); }
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
   }
-  .animate-float { animation: float 4s ease-in-out infinite; }
-  .animate-float-delayed { animation: float-delayed 5s ease-in-out infinite 1s; }
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+  .animate-float-delayed {
+    animation: float-delayed 5s ease-in-out infinite 1s;
+  }
 
   /* Glassmorphism panel */
   .glass {
@@ -158,12 +177,7 @@
   }
 
   .dark .shimmer {
-    background: linear-gradient(
-      90deg,
-      oklch(18% 0 0) 25%,
-      oklch(22% 0 0) 50%,
-      oklch(18% 0 0) 75%
-    );
+    background: linear-gradient(90deg, oklch(18% 0 0) 25%, oklch(22% 0 0) 50%, oklch(18% 0 0) 75%);
     background-size: 800px 100%;
     animation: shimmer 1.5s infinite;
   }

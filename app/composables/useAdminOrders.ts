@@ -32,33 +32,44 @@ export const useAdminOrders = (opts?: {
         query = query.eq('status', status.value)
       }
       if (search.value.trim()) {
-        // Strip leading # (e.g. admin typed #A1B2C3D4 from the display format)
-        const q = search.value.trim().replace(/^#/, '')
+        // Strip leading # (e.g. admin typed #A1B2C3D4)
+        const q = search.value.trim().replace(/^#/, '').toLowerCase()
 
-        // Pre-fetch profile IDs whose full_name matches the search term.
-        // This lets us find orders by customer name even though orders only
-        // store user_id, not the name.
-        const { data: profileMatches } = await supabase
-          .from('profiles')
-          .select('id')
-          .ilike('full_name', `%${q}%`)
-          .limit(100)
+        // PostgREST's .or() parser does NOT support ::text casts, so we
+        // collect matching order IDs via separate pre-queries and then use
+        // .in() on the main query — the only reliable approach for UUID columns.
 
-        const matchingUserIds = (profileMatches ?? []).map((p: any) => p.id as string)
+        const [byOrderId, byUserId, profileMatches] = await Promise.all([
+          // Match order ID prefix (::text cast works in standalone .filter())
+          supabase.from('orders').select('id').filter('id::text', 'ilike', `${q}%`).limit(200),
+          // Match user_id prefix
+          supabase.from('orders').select('id').filter('user_id::text', 'ilike', `${q}%`).limit(200),
+          // Match customer full_name
+          supabase.from('profiles').select('id').ilike('full_name', `%${q}%`).limit(100),
+        ])
 
-        // Build OR across all three searchable axes:
-        //   • order ID text prefix  (::text cast needed — UUID column)
-        //   • user_id text prefix   (::text cast needed — UUID column)
-        //   • user_id in name-matched profile IDs
-        const orParts: string[] = [
-          `id::text.ilike.${q}%`,
-          `user_id::text.ilike.${q}%`,
-        ]
-        if (matchingUserIds.length) {
-          orParts.push(`user_id.in.(${matchingUserIds.join(',')})`)
+        const matchedIds = new Set<string>([
+          ...(byOrderId.data ?? []).map((r: any) => r.id),
+          ...(byUserId.data ?? []).map((r: any) => r.id),
+        ])
+
+        // For name matches: resolve profile IDs → order IDs
+        const nameUserIds = (profileMatches.data ?? []).map((p: any) => p.id)
+        if (nameUserIds.length) {
+          const { data: nameOrders } = await supabase
+            .from('orders')
+            .select('id')
+            .in('user_id', nameUserIds)
+            .limit(200)
+          ;(nameOrders ?? []).forEach((r: any) => matchedIds.add(r.id))
         }
 
-        query = query.or(orParts.join(','))
+        if (matchedIds.size === 0) {
+          // Nothing matched — return empty immediately without hitting the DB again
+          return { orders: [], total: 0 }
+        }
+
+        query = query.in('id', [...matchedIds])
       }
 
       const from = (page.value - 1) * PAGE_SIZE

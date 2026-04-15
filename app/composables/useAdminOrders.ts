@@ -10,6 +10,25 @@ type Profile = Database['public']['Tables']['profiles']['Row']
 
 const PAGE_SIZE = 20
 
+// ── UUID range helper ──────────────────────────────────────────────────────────
+// Supabase JS cannot cast UUID columns to text — neither .filter('id::text', ...)
+// nor .or('id::text.ilike...') work (PostgREST rejects them both).
+// Instead: pad the hex prefix to 32 chars with 0s / fs to get lower/upper
+// UUID bounds, then use gte/lte — works natively on UUID columns.
+function hexToUUID(hex: string): string {
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`
+}
+
+function uuidBounds(prefix: string): { lower: string; upper: string } | null {
+  const hex = prefix.replace(/-/g, '').toLowerCase()
+  if (!hex || !/^[0-9a-f]+$/.test(hex)) return null
+  const capped = hex.slice(0, 32)
+  return {
+    lower: hexToUUID((capped + '0'.repeat(32)).slice(0, 32)),
+    upper: hexToUUID((capped + 'f'.repeat(32)).slice(0, 32)),
+  }
+}
+
 export const useAdminOrders = (opts?: {
   status?: Ref<string>
   search?: Ref<string>
@@ -31,43 +50,39 @@ export const useAdminOrders = (opts?: {
       if (status.value && status.value !== 'all') {
         query = query.eq('status', status.value)
       }
+
       if (search.value.trim()) {
-        // Strip leading # (e.g. admin typed #A1B2C3D4)
-        const q = search.value.trim().replace(/^#/, '').toLowerCase()
+        const raw = search.value.trim().replace(/^#/, '')
+        const matchedIds = new Set<string>()
 
-        // PostgREST's .or() parser does NOT support ::text casts, so we
-        // collect matching order IDs via separate pre-queries and then use
-        // .in() on the main query — the only reliable approach for UUID columns.
+        // ── Order ID / user_id prefix via UUID range ─────────────────────
+        const bounds = uuidBounds(raw)
+        if (bounds) {
+          const [byOrderId, byUserId] = await Promise.all([
+            supabase.from('orders').select('id')
+              .gte('id', bounds.lower).lte('id', bounds.upper).limit(200),
+            supabase.from('orders').select('id')
+              .gte('user_id', bounds.lower).lte('user_id', bounds.upper).limit(200),
+          ])
+          ;(byOrderId.data ?? []).forEach((r: any) => matchedIds.add(r.id))
+          ;(byUserId.data ?? []).forEach((r: any) => matchedIds.add(r.id))
+        }
 
-        const [byOrderId, byUserId, profileMatches] = await Promise.all([
-          // Match order ID prefix (::text cast works in standalone .filter())
-          supabase.from('orders').select('id').filter('id::text', 'ilike', `${q}%`).limit(200),
-          // Match user_id prefix
-          supabase.from('orders').select('id').filter('user_id::text', 'ilike', `${q}%`).limit(200),
-          // Match customer full_name
-          supabase.from('profiles').select('id').ilike('full_name', `%${q}%`).limit(100),
-        ])
+        // ── Customer name search ──────────────────────────────────────────
+        const { data: profileMatches } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('full_name', `%${raw}%`)
+          .limit(100)
 
-        const matchedIds = new Set<string>([
-          ...(byOrderId.data ?? []).map((r: any) => r.id),
-          ...(byUserId.data ?? []).map((r: any) => r.id),
-        ])
-
-        // For name matches: resolve profile IDs → order IDs
-        const nameUserIds = (profileMatches.data ?? []).map((p: any) => p.id)
+        const nameUserIds = (profileMatches ?? []).map((p: any) => p.id as string)
         if (nameUserIds.length) {
           const { data: nameOrders } = await supabase
-            .from('orders')
-            .select('id')
-            .in('user_id', nameUserIds)
-            .limit(200)
+            .from('orders').select('id').in('user_id', nameUserIds).limit(200)
           ;(nameOrders ?? []).forEach((r: any) => matchedIds.add(r.id))
         }
 
-        if (matchedIds.size === 0) {
-          // Nothing matched — return empty immediately without hitting the DB again
-          return { orders: [], total: 0 }
-        }
+        if (matchedIds.size === 0) return { orders: [], total: 0 }
 
         query = query.in('id', [...matchedIds])
       }
@@ -83,9 +98,7 @@ export const useAdminOrders = (opts?: {
       let nameMap: Record<string, string | null> = {}
       if (userIds.length) {
         const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, full_name')
-          .in('id', userIds)
+          .from('profiles').select('id, full_name').in('id', userIds)
         nameMap = Object.fromEntries((profiles ?? []).map((p: any) => [p.id, p.full_name]))
       }
 

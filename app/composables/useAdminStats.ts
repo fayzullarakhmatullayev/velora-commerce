@@ -14,13 +14,13 @@ export const useAdminStats = () => {
   const { data: stats, pending: statsPending, refresh: refreshStats } = useAsyncData(
     'admin-stats',
     async () => {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
+      const now = new Date()
+      const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
       const todayIso = today.toISOString()
 
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-      const thirtyDaysIso = thirtyDaysAgo.toISOString()
+      // Start of current month in UTC
+      const startOfMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))
+      const startOfMonthIso = startOfMonth.toISOString()
 
       const [ordersRes, todayOrdersRes, productsRes, usersRes, revenueRes] = await Promise.all([
         // Total orders
@@ -33,10 +33,10 @@ export const useAdminStats = () => {
           .eq('is_active', true),
         // Total users (profiles)
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        // Total revenue from paid orders last 30 days
+        // Total revenue from paid orders this calendar month
         supabase.from('orders').select('total')
           .eq('payment_status', 'paid')
-          .gte('created_at', thirtyDaysIso),
+          .gte('created_at', startOfMonthIso),
       ])
 
       const revenue30d = (revenueRes.data ?? []).reduce((sum, o) => sum + Number(o.total), 0)
@@ -86,29 +86,33 @@ export const useAdminStats = () => {
     { getCachedData: () => undefined },
   )
 
-  // ── Revenue last 30 days grouped by day ───────────────────────────────────
+  // ── Revenue — current calendar month, grouped by day (UTC throughout) ────
   const { data: revenueChart, pending: chartPending } = useAsyncData(
     'admin-revenue-chart',
     async () => {
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const now = new Date()
+      // First moment of this month in UTC — avoids local-timezone off-by-one
+      const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+      // First moment of tomorrow UTC — used as exclusive upper bound for cursor
+      const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1))
 
       const { data, error } = await supabase
         .from('orders')
         .select('total, created_at')
         .eq('payment_status', 'paid')
-        .gte('created_at', thirtyDaysAgo.toISOString())
+        .gte('created_at', startOfMonth.toISOString())
         .order('created_at', { ascending: true })
 
       if (error) throw error
 
-      // Group by day
+      // Build a slot for every UTC day from the 1st through today inclusive
       const byDay: Record<string, number> = {}
-      for (let i = 29; i >= 0; i--) {
-        const d = new Date()
-        d.setDate(d.getDate() - i)
-        byDay[d.toISOString().slice(0, 10)] = 0
+      const cursor = new Date(startOfMonth)
+      while (cursor < tomorrow) {
+        byDay[cursor.toISOString().slice(0, 10)] = 0
+        cursor.setUTCDate(cursor.getUTCDate() + 1)
       }
+
       for (const order of data ?? []) {
         const day = order.created_at.slice(0, 10)
         if (day in byDay) byDay[day] = (byDay[day] ?? 0) + Number(order.total)

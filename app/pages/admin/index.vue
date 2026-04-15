@@ -59,7 +59,7 @@ function productThumb(images: string[]) {
     <!-- ── KPI cards ──────────────────────────────────────────────────────── -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <AdminStatCard
-        label="Revenue (30d)"
+        label="Revenue (this month)"
         :value="stats ? formatPrice(stats.revenue30d) : '—'"
         icon="heroicons:banknotes"
         icon-color="bg-emerald-500"
@@ -95,7 +95,7 @@ function productThumb(images: string[]) {
       <!-- Revenue chart (last 30 days) -->
       <VCard padding="md" class="xl:col-span-2">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="font-semibold text-zinc-900 dark:text-white">Revenue — Last 30 Days</h2>
+          <h2 class="font-semibold text-zinc-900 dark:text-white">Revenue — This Month</h2>
           <p v-if="stats" class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
             {{ formatPrice(stats.revenue30d) }}
           </p>

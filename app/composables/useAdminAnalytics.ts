@@ -11,16 +11,29 @@ export const useAdminAnalytics = (period: Ref<Period>) => {
   const { data, pending } = useAsyncData(
     () => `admin-analytics-${period.value}`,
     async () => {
-      const days = period.value === '7d' ? 7 : period.value === '30d' ? 30 : 90
-      const prevDays = days * 2
+      const now = new Date()
 
-      const since = new Date()
-      since.setDate(since.getDate() - days)
-      const sinceIso = since.toISOString()
+      // All date math in UTC to avoid local-timezone off-by-one on byDay keys.
+      // '30d' = current calendar month (1st → today); 7d/90d = rolling window.
+      let sinceIso: string
+      let prevSinceIso: string
+      let days: number
 
-      const prevSince = new Date()
-      prevSince.setDate(prevSince.getDate() - prevDays)
-      const prevSinceIso = prevSince.toISOString()
+      if (period.value === '30d') {
+        // Current calendar month
+        const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+        sinceIso = startOfMonth.toISOString()
+        // Previous month as comparison period
+        const startOfPrevMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1))
+        prevSinceIso = startOfPrevMonth.toISOString()
+        days = now.getUTCDate() // days elapsed so far this month
+      } else {
+        days = period.value === '7d' ? 7 : 90
+        const since = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - days + 1))
+        sinceIso = since.toISOString()
+        const prevSince = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - days * 2 + 1))
+        prevSinceIso = prevSince.toISOString()
+      }
 
       const [ordersRes, prevOrdersRes, statusRes] = await Promise.all([
         supabase.from('orders').select('id, total, created_at, status').eq('payment_status', 'paid').gte('created_at', sinceIso),
@@ -44,12 +57,14 @@ export const useAdminAnalytics = (period: Ref<Period>) => {
       const statuses   = (statusRes.data ?? []) as StatusRow[]
       const items      = (itemsRes.data ?? []) as ItemRow[]
 
-      // ── Revenue chart (group by day) ────────────────────────────────────────
+      // ── Revenue chart (group by day, UTC cursor) ────────────────────────────
       const byDay: Record<string, number> = {}
-      for (let i = days - 1; i >= 0; i--) {
-        const d = new Date()
-        d.setDate(d.getDate() - i)
-        byDay[d.toISOString().slice(0, 10)] = 0
+      const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1))
+      const chartStart = new Date(sinceIso)
+      const cursor = new Date(chartStart)
+      while (cursor < tomorrow) {
+        byDay[cursor.toISOString().slice(0, 10)] = 0
+        cursor.setUTCDate(cursor.getUTCDate() + 1)
       }
       for (const order of orders) {
         const day = order.created_at.slice(0, 10)

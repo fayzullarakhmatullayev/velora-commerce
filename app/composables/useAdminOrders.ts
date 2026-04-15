@@ -32,9 +32,33 @@ export const useAdminOrders = (opts?: {
         query = query.eq('status', status.value)
       }
       if (search.value.trim()) {
-        // strip leading # if user typed the display format (e.g. #A1B2C3D4)
+        // Strip leading # (e.g. admin typed #A1B2C3D4 from the display format)
         const q = search.value.trim().replace(/^#/, '')
-        query = query.ilike('id', `${q}%`)
+
+        // Pre-fetch profile IDs whose full_name matches the search term.
+        // This lets us find orders by customer name even though orders only
+        // store user_id, not the name.
+        const { data: profileMatches } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('full_name', `%${q}%`)
+          .limit(100)
+
+        const matchingUserIds = (profileMatches ?? []).map((p: any) => p.id as string)
+
+        // Build OR across all three searchable axes:
+        //   • order ID text prefix  (::text cast needed — UUID column)
+        //   • user_id text prefix   (::text cast needed — UUID column)
+        //   • user_id in name-matched profile IDs
+        const orParts: string[] = [
+          `id::text.ilike.${q}%`,
+          `user_id::text.ilike.${q}%`,
+        ]
+        if (matchingUserIds.length) {
+          orParts.push(`user_id.in.(${matchingUserIds.join(',')})`)
+        }
+
+        query = query.or(orParts.join(','))
       }
 
       const from = (page.value - 1) * PAGE_SIZE
@@ -43,8 +67,24 @@ export const useAdminOrders = (opts?: {
       const { data: rows, count, error } = await query
       if (error) throw error
 
+      // Batch-fetch customer names for the current page
+      const userIds = [...new Set((rows ?? []).map((r: any) => r.user_id).filter(Boolean))]
+      let nameMap: Record<string, string | null> = {}
+      if (userIds.length) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', userIds)
+        nameMap = Object.fromEntries((profiles ?? []).map((p: any) => [p.id, p.full_name]))
+      }
+
+      const orders = (rows ?? []).map((r: any) => ({
+        ...r,
+        customer_name: nameMap[r.user_id] ?? null,
+      }))
+
       return {
-        orders: rows as Pick<Order, 'id' | 'user_id' | 'status' | 'payment_status' | 'total' | 'created_at'>[],
+        orders: orders as (Pick<Order, 'id' | 'user_id' | 'status' | 'payment_status' | 'total' | 'created_at'> & { customer_name: string | null })[],
         total: count ?? 0,
       }
     },

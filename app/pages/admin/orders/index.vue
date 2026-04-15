@@ -89,7 +89,7 @@ const pageTo = computed(() => Math.min(page.value * 20, total.value))
         <div class="flex-1">
           <UInput
             v-model="search"
-            placeholder="Search by order ID…"
+            placeholder="Search by order ID, user ID, or customer name…"
             icon="heroicons:magnifying-glass"
             size="sm"
             :ui="{ root: 'relative flex items-center w-full' }"
@@ -157,7 +157,10 @@ const pageTo = computed(() => Math.min(page.value * 20, total.value))
                 {{ formatDate(order.created_at) }}
               </td>
               <td class="px-5 py-3.5">
-                <span class="font-mono text-xs text-zinc-400">
+                <span v-if="order.customer_name" class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  {{ order.customer_name }}
+                </span>
+                <span v-else class="font-mono text-xs text-zinc-400">
                   {{ order.user_id.slice(0, 8) }}…
                 </span>
               </td>

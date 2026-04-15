@@ -32,6 +32,7 @@ export const useCart = () => {
     store.addItem({
       productId: product.id,
       variantId: variant?.id,
+      variantAttributes: variant?.attributes as Record<string, string> | undefined,
       quantity,
       price: variant?.price ?? product.price,
       title: translation?.title ?? 'Product',

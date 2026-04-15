@@ -23,7 +23,7 @@ const { data, pending } = useAsyncData(`order-${route.params.id}`, async () => {
     .eq('user_id', session.user.id)
     .single()
 
-  if (orderError) throw orderError
+  if (orderError || !order) throw orderError ?? new Error('Order not found')
 
   const { data: items, error: itemsError } = await supabase
     .from('order_items')
@@ -172,6 +172,16 @@ function formatPrice(n: number) {
                 <p class="text-sm font-medium text-zinc-900 dark:text-white truncate">
                   {{ item.title }}
                 </p>
+                <!-- Variant attributes snapshot -->
+                <div v-if="(item as any).variant_attributes && Object.keys((item as any).variant_attributes).length" class="flex flex-wrap gap-1 mt-1">
+                  <span
+                    v-for="[k, v] in Object.entries((item as any).variant_attributes as Record<string,string>)"
+                    :key="k"
+                    class="inline-flex items-center rounded-md bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
+                  >
+                    {{ k }}: {{ v }}
+                  </span>
+                </div>
                 <p class="text-xs text-zinc-400 mt-0.5">
                   {{ t('common.qty') }}: {{ item.quantity }}
                 </p>

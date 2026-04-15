@@ -225,6 +225,7 @@ async function placeOrder(stripeIntentId: string) {
       order_id: order.id,
       product_id: item.productId,
       variant_id: item.variantId ?? null,
+      variant_attributes: item.variantAttributes ?? null,
       title: item.title,
       image: item.image || null,
       price: item.price,
@@ -446,6 +447,9 @@ function formatPrice(n: number) {
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-zinc-900 dark:text-white truncate">{{ item.title }}</p>
+                <p v-if="item.variantAttributes && Object.keys(item.variantAttributes).length" class="text-xs text-zinc-400 mt-0.5">
+                  {{ Object.entries(item.variantAttributes).map(([k, v]) => `${k}: ${v}`).join(' · ') }}
+                </p>
               </div>
               <p class="text-sm font-semibold text-zinc-900 dark:text-white shrink-0">
                 {{ formatPrice(item.price * item.quantity) }}

@@ -34,12 +34,23 @@ function decrement() {
     <!-- Details -->
     <div class="flex flex-1 flex-col justify-between min-w-0">
       <div class="flex items-start justify-between gap-2">
-        <NuxtLink
-          :to="`/product/${item.slug}`"
-          class="text-sm font-medium text-zinc-800 dark:text-zinc-200 line-clamp-2 hover:text-primary-600 transition-colors"
-        >
-          {{ item.title }}
-        </NuxtLink>
+        <div class="min-w-0">
+          <NuxtLink
+            :to="`/product/${item.slug}`"
+            class="text-sm font-medium text-zinc-800 dark:text-zinc-200 line-clamp-2 hover:text-primary-600 transition-colors"
+          >
+            {{ item.title }}
+          </NuxtLink>
+          <p v-if="item.variantAttributes && Object.keys(item.variantAttributes).length" class="mt-0.5 flex flex-wrap gap-1">
+            <span
+              v-for="[k, v] in Object.entries(item.variantAttributes)"
+              :key="k"
+              class="inline-flex items-center rounded-md bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:text-zinc-400"
+            >
+              {{ k }}: {{ v }}
+            </span>
+          </p>
+        </div>
         <button
           class="shrink-0 text-zinc-400 hover:text-rose-500 transition-colors"
           :aria-label="t('cart.remove')"

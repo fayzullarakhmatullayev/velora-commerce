@@ -2,8 +2,10 @@
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useSeoMeta({ title: 'Orders — Velora Admin' })
 
+const route = useRoute()
 const status = ref('all')
-const search = ref('')
+// Pre-populate from ?search= so the "Orders" link on the users page works
+const search = ref((route.query.search as string) || '')
 const page = ref(1)
 
 // Reset page when filters change

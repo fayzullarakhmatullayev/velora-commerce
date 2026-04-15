@@ -29,8 +29,33 @@ const { data, pending, refresh } = useAsyncData(
       .order('created_at', { ascending: false })
 
     if (search.value.trim()) {
-      const q = search.value.trim()
-      query = query.or(`full_name.ilike.%${q}%,id.ilike.${q}%`)
+      const q = search.value.trim().replace(/^#/, '')
+
+      // UUID prefix search: ilike on UUID columns is not supported in .or().
+      // Use range bounds (gte/lte) on a separate pre-query, collect matching
+      // profile IDs, then combine with name matches via .in().
+      const matchedIds = new Set<string>()
+
+      // Name match (text column — works directly)
+      const { data: byName } = await supabase
+        .from('profiles').select('id').ilike('full_name', `%${q}%`).limit(200)
+      ;(byName ?? []).forEach((r: any) => matchedIds.add(r.id))
+
+      // UUID prefix match via range bounds
+      const hexOnly = q.replace(/-/g, '').toLowerCase()
+      if (/^[0-9a-f]+$/.test(hexOnly) && hexOnly.length >= 1) {
+        const capped = hexOnly.slice(0, 32)
+        const toUUID = (h: string) =>
+          `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20,32)}`
+        const lower = toUUID((capped + '0'.repeat(32)).slice(0, 32))
+        const upper = toUUID((capped + 'f'.repeat(32)).slice(0, 32))
+        const { data: byId } = await supabase
+          .from('profiles').select('id').gte('id', lower).lte('id', upper).limit(200)
+        ;(byId ?? []).forEach((r: any) => matchedIds.add(r.id))
+      }
+
+      if (matchedIds.size === 0) return { users: [], total: 0 }
+      query = query.in('id', [...matchedIds])
     }
     if (roleFilter.value !== 'all') {
       query = query.eq('role', roleFilter.value)

@@ -44,11 +44,6 @@ const statusConfig: Record<string, { color: string; label: string }> = {
   refunded:   { color: 'bg-zinc-400',    label: 'Refunded' },
 }
 
-const statusBadgeColor: Record<string, string> = {
-  pending: 'warning', paid: 'success', processing: 'info',
-  shipped: 'info', delivered: 'success', cancelled: 'error', refunded: 'neutral',
-}
-
 const totalOrdersInPeriod = computed(() =>
   Object.values(data.value?.statusCounts ?? {}).reduce((s, n) => s + n, 0)
 )
@@ -166,7 +161,7 @@ function statusPct(count: number) {
           <div
             v-for="point in data?.revenueChart"
             :key="point.date"
-            class="group relative flex-1 flex flex-col justify-end"
+            class="group relative flex-1 flex flex-col justify-end h-full"
           >
             <div
               class="w-full rounded-t-sm bg-primary-500 dark:bg-primary-600 transition-all duration-300 hover:bg-primary-400 min-h-px"

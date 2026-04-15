@@ -116,7 +116,7 @@ function productThumb(images: string[]) {
           <div
             v-for="point in revenueChart"
             :key="point.date"
-            class="group relative flex-1 flex flex-col justify-end"
+            class="group relative flex-1 flex flex-col justify-end h-full"
           >
             <div
               class="w-full rounded-t-sm bg-primary-500 dark:bg-primary-600 transition-all duration-300 hover:bg-primary-600 dark:hover:bg-primary-500 min-h-[2px]"

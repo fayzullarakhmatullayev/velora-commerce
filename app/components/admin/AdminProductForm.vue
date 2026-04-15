@@ -95,6 +95,77 @@ function onTagKeydown(e: KeyboardEvent) {
     addTag()
   }
 }
+
+// ── Variants ──────────────────────────────────────────────────────────────────
+const hasVariants = computed(() => props.modelValue.variantOption.values.length > 0)
+
+// Preset suggestion groups keyed by option name (case-insensitive match)
+const presetGroups: Record<string, string[]> = {
+  size:         ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'],
+  'shoe size':  ['35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'],
+  color:        ['Black', 'White', 'Gray', 'Navy', 'Red', 'Green', 'Blue', 'Yellow', 'Pink', 'Brown'],
+  storage:      ['64GB', '128GB', '256GB', '512GB', '1TB'],
+  ram:          ['4GB', '8GB', '16GB', '32GB', '64GB'],
+  material:     ['Cotton', 'Polyester', 'Wool', 'Linen', 'Silk', 'Leather'],
+  weight:       ['250g', '500g', '1kg', '2kg', '5kg'],
+}
+
+const currentPresets = computed(() => {
+  const key = props.modelValue.variantOption.optionName.toLowerCase().trim()
+  return presetGroups[key] ?? []
+})
+
+const addedValues = computed(() => props.modelValue.variantOption.values.map(v => v.value))
+
+function patchVariantOption(updates: Partial<ProductFormState['variantOption']>) {
+  patch({
+    variantOption: { ...props.modelValue.variantOption, ...updates },
+  })
+}
+
+function addPreset(value: string) {
+  if (addedValues.value.includes(value)) return
+  patchVariantOption({
+    values: [...props.modelValue.variantOption.values, { value, stock: 0 }],
+  })
+}
+
+function removeVariantValue(index: number) {
+  const vals = [...props.modelValue.variantOption.values]
+  vals.splice(index, 1)
+  patchVariantOption({ values: vals })
+}
+
+function updateVariantStock(index: number, stock: number) {
+  const vals = props.modelValue.variantOption.values.map((v, i) =>
+    i === index ? { ...v, stock: Math.max(0, stock) } : v,
+  )
+  patchVariantOption({ values: vals })
+}
+
+function updateVariantValue(index: number, value: string) {
+  const vals = props.modelValue.variantOption.values.map((v, i) =>
+    i === index ? { ...v, value } : v,
+  )
+  patchVariantOption({ values: vals })
+}
+
+const newValueInput = ref('')
+function addCustomValue() {
+  const val = newValueInput.value.trim()
+  if (!val || addedValues.value.includes(val)) return
+  patchVariantOption({
+    values: [...props.modelValue.variantOption.values, { value: val, stock: 0 }],
+  })
+  newValueInput.value = ''
+}
+function onValueKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter') { e.preventDefault(); addCustomValue() }
+}
+
+const totalVariantStock = computed(() =>
+  props.modelValue.variantOption.values.reduce((s, v) => s + (v.stock || 0), 0),
+)
 </script>
 
 <template>
@@ -186,17 +257,22 @@ function onTagKeydown(e: KeyboardEvent) {
             @update:model-value="patch({ compare_price: $event })"
           />
         </UFormField>
+        <!-- Stock: locked when variants manage it -->
         <UFormField label="Stock" class="col-span-1">
           <UInput
-            :model-value="form.stock"
+            :model-value="hasVariants ? String(totalVariantStock) : form.stock"
             type="number"
             min="0"
             step="1"
             placeholder="0"
             size="sm"
             class="w-full"
-            @update:model-value="patch({ stock: $event })"
+            :disabled="hasVariants"
+            @update:model-value="!hasVariants && patch({ stock: $event })"
           />
+          <p v-if="hasVariants" class="mt-1 text-[11px] text-zinc-400">
+            Managed by variants below
+          </p>
         </UFormField>
         <UFormField label="SKU *" class="col-span-1">
           <UInput
@@ -208,6 +284,140 @@ function onTagKeydown(e: KeyboardEvent) {
           />
         </UFormField>
       </div>
+    </VCard>
+
+    <!-- ── Variants (Options) ───────────────────────────────────────────────── -->
+    <VCard padding="md">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h2 class="font-semibold text-zinc-900 dark:text-white">Variants</h2>
+          <p class="text-xs text-zinc-400 mt-0.5">
+            Add options like size, color, or storage. Each gets its own stock count.
+          </p>
+        </div>
+        <UBadge v-if="hasVariants" color="success" variant="subtle" size="sm">
+          {{ form.variantOption.values.length }} variant{{ form.variantOption.values.length === 1 ? '' : 's' }}
+        </UBadge>
+      </div>
+
+      <!-- Option name -->
+      <div class="mb-4">
+        <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Option Name</p>
+        <div class="flex flex-wrap gap-2 mb-2">
+          <button
+            v-for="preset in ['Size', 'Color', 'Storage', 'Material', 'RAM', 'Shoe Size', 'Weight']"
+            :key="preset"
+            type="button"
+            class="px-3 py-1 rounded-full text-xs font-medium border transition-colors"
+            :class="form.variantOption.optionName === preset
+              ? 'border-primary-500 bg-primary-50 dark:bg-primary-950 text-primary-700 dark:text-primary-300'
+              : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400'"
+            @click="patchVariantOption({ optionName: preset })"
+          >
+            {{ preset }}
+          </button>
+        </div>
+        <UInput
+          :model-value="form.variantOption.optionName"
+          placeholder="Custom option name…"
+          size="sm"
+          class="w-48"
+          @update:model-value="patchVariantOption({ optionName: $event })"
+        />
+      </div>
+
+      <!-- Preset value quick-add -->
+      <div v-if="currentPresets.length" class="mb-4">
+        <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">
+          Quick Add — {{ form.variantOption.optionName }}
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="preset in currentPresets"
+            :key="preset"
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-all"
+            :class="addedValues.includes(preset)
+              ? 'border-primary-500 bg-primary-50 dark:bg-primary-950 text-primary-700 dark:text-primary-300 cursor-default'
+              : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-primary-400 hover:text-primary-600'"
+            :disabled="addedValues.includes(preset)"
+            @click="addPreset(preset)"
+          >
+            <UIcon v-if="addedValues.includes(preset)" name="heroicons:check" class="size-3 mr-1" />
+            {{ preset }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Variant value rows -->
+      <div v-if="hasVariants" class="mb-4 space-y-2">
+        <div class="grid grid-cols-[1fr_120px_32px] gap-2 mb-1">
+          <p class="text-xs font-medium text-zinc-400 uppercase tracking-wider">{{ form.variantOption.optionName }}</p>
+          <p class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Stock</p>
+          <span />
+        </div>
+
+        <div
+          v-for="(v, index) in form.variantOption.values"
+          :key="index"
+          class="grid grid-cols-[1fr_120px_32px] gap-2 items-center"
+        >
+          <UInput
+            :model-value="v.value"
+            size="sm"
+            :placeholder="`${form.variantOption.optionName} value`"
+            @update:model-value="updateVariantValue(index, $event)"
+          />
+          <UInput
+            :model-value="String(v.stock)"
+            type="number"
+            min="0"
+            step="1"
+            size="sm"
+            placeholder="0"
+            @update:model-value="updateVariantStock(index, parseInt($event) || 0)"
+          />
+          <button
+            type="button"
+            class="flex items-center justify-center size-8 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+            @click="removeVariantValue(index)"
+          >
+            <UIcon name="heroicons:x-mark" class="size-4" />
+          </button>
+        </div>
+
+        <!-- Total stock indicator -->
+        <div class="flex justify-end pt-1 border-t border-zinc-100 dark:border-zinc-800 mt-3">
+          <p class="text-xs text-zinc-500">
+            Total stock: <span class="font-semibold text-zinc-900 dark:text-white">{{ totalVariantStock }}</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Add custom value -->
+      <div class="flex gap-2">
+        <UInput
+          v-model="newValueInput"
+          :placeholder="`Add ${form.variantOption.optionName} value…`"
+          size="sm"
+          class="flex-1"
+          @keydown="onValueKeydown"
+        />
+        <UButton
+          type="button"
+          size="sm"
+          color="neutral"
+          variant="outline"
+          icon="heroicons:plus"
+          @click="addCustomValue"
+        >
+          Add
+        </UButton>
+      </div>
+
+      <p v-if="!hasVariants" class="mt-3 text-xs text-zinc-400">
+        No variants added — product uses the global stock field above.
+      </p>
     </VCard>
 
     <!-- ── Organization ──────────────────────────────────────────────────────── -->

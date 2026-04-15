@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { emptyForm, formToPayload, useAdminCategories } from '~/composables/useAdminProductForm'
+import { emptyForm, formToPayload, saveVariants, useAdminCategories } from '~/composables/useAdminProductForm'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useSeoMeta({ title: 'New Product — Velora Admin' })
@@ -32,8 +32,12 @@ async function save() {
   try {
     const { data, error } = await supabase.from('products').insert(payload as any).select('id').single()
     if (error) throw error
+
+    const productId = (data as any).id
+    await saveVariants(supabase, productId, payload.sku, payload.price, form.value.variantOption)
+
     toast.add({ title: 'Product created', color: 'success', icon: 'heroicons:check-circle' })
-    await navigateTo(`/admin/products/${(data as any).id}`)
+    await navigateTo(`/admin/products/${productId}`)
   } catch (err: any) {
     toast.add({ title: 'Failed to save product', description: err.message, color: 'error', icon: 'heroicons:x-circle' })
   } finally {

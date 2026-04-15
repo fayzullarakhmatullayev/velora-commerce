@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { productToForm, formToPayload, useAdminCategories } from '~/composables/useAdminProductForm'
+import { productToForm, formToPayload, saveVariants, useAdminCategories } from '~/composables/useAdminProductForm'
 import type { ProductFormState } from '~/composables/useAdminProductForm'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
@@ -10,16 +10,23 @@ const id = route.params.id as string
 const supabase = useSupabase()
 const toast = useToast()
 
-// ── Load existing product ──────────────────────────────────────────────────────
 import type { Database } from '~/types/database.types'
 type Product = Database['public']['Tables']['products']['Row']
+type ProductVariant = Database['public']['Tables']['product_variants']['Row']
 
+// ── Load product + its existing variants ──────────────────────────────────────
 const { data: product, pending } = useAsyncData(
   `admin-product-edit-${id}`,
   async () => {
-    const { data, error } = await supabase.from('products').select('*').eq('id', id).single()
-    if (error) throw error
-    return data as Product
+    const [productRes, variantsRes] = await Promise.all([
+      supabase.from('products').select('*').eq('id', id).single(),
+      supabase.from('product_variants').select('attributes, stock').eq('product_id', id).order('created_at', { ascending: true }),
+    ])
+    if (productRes.error) throw productRes.error
+    return {
+      product: productRes.data as Product,
+      variants: (variantsRes.data ?? []) as Pick<ProductVariant, 'attributes' | 'stock'>[],
+    }
   },
   { getCachedData: () => undefined },
 )
@@ -27,7 +34,7 @@ const { data: product, pending } = useAsyncData(
 useSeoMeta({
   title: computed(() =>
     product.value
-      ? `Edit "${product.value.translations?.en?.title ?? 'Product'}" — Velora Admin`
+      ? `Edit "${product.value.product.translations?.en?.title ?? 'Product'}" — Velora Admin`
       : 'Edit Product — Velora Admin',
   ),
 })
@@ -38,7 +45,7 @@ watch(
   product,
   (p) => {
     if (p && !form.value) {
-      form.value = productToForm(p as any)
+      form.value = productToForm(p.product as any, p.variants as any)
     }
   },
   { immediate: true },
@@ -58,11 +65,7 @@ async function save() {
     return
   }
   if (!form.value.translations.en.title.trim()) {
-    toast.add({
-      title: 'English title is required',
-      color: 'error',
-      icon: 'heroicons:exclamation-circle',
-    })
+    toast.add({ title: 'English title is required', color: 'error', icon: 'heroicons:exclamation-circle' })
     return
   }
 
@@ -70,6 +73,9 @@ async function save() {
   try {
     const { error } = await (supabase.from('products') as any).update(payload).eq('id', id)
     if (error) throw error
+
+    await saveVariants(supabase, id, payload.sku, payload.price, form.value.variantOption)
+
     toast.add({ title: 'Product saved', color: 'success', icon: 'heroicons:check-circle' })
   } catch (err: any) {
     toast.add({
@@ -121,11 +127,11 @@ async function executeDelete() {
         />
         <div>
           <h1 class="font-display text-2xl font-bold text-zinc-900 dark:text-white">
-            <span v-if="product">{{ product.translations?.en?.title ?? 'Edit Product' }}</span>
+            <span v-if="product">{{ product.product.translations?.en?.title ?? 'Edit Product' }}</span>
             <USkeleton v-else class="inline-block h-7 w-48 align-middle" />
           </h1>
           <p v-if="product" class="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400 font-mono">
-            {{ product.id }}
+            {{ product.product.id }}
           </p>
         </div>
       </div>
@@ -175,17 +181,14 @@ async function executeDelete() {
               <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                 Are you sure you want to delete
                 <span class="font-medium text-zinc-700 dark:text-zinc-300">{{
-                  product?.translations?.en?.title
-                }}</span
-                >? This cannot be undone.
+                  product?.product?.translations?.en?.title
+                }}</span>? This cannot be undone.
               </p>
             </div>
           </div>
           <div class="flex justify-end gap-2 pt-2">
             <UButton color="neutral" variant="outline" @click="deleteModal = false">Cancel</UButton>
-            <UButton color="error" :loading="deleting" icon="heroicons:trash" @click="executeDelete"
-              >Delete</UButton
-            >
+            <UButton color="error" :loading="deleting" icon="heroicons:trash" @click="executeDelete">Delete</UButton>
           </div>
         </div>
       </template>

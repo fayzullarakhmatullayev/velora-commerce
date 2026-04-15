@@ -23,16 +23,50 @@ const quantity = ref(1)
 const selectedVariant = ref<ProductVariantRow | null>(null)
 const addingToCart = ref(false)
 
+// ── Variant helpers ───────────────────────────────────────────────────────────
+// Whether this product uses option variants (size, color, etc.)
+const hasVariants = computed(() => (variants.value?.length ?? 0) > 0)
+
+// The option name from the first variant's attributes key (e.g. "Size", "Color")
+const variantOptionName = computed(() => {
+  if (!variants.value?.length) return ''
+  return Object.keys(variants.value[0]!.attributes ?? {})[0] ?? ''
+})
+
+// The display value for a given variant (e.g. "M", "Black")
+function variantLabel(v: ProductVariantRow): string {
+  return (v.attributes as Record<string, string>)[variantOptionName.value] ?? Object.values(v.attributes ?? {}).join(' / ')
+}
+
+// Effective available stock — selected variant's or the product's
+const effectiveStock = computed(() => {
+  if (selectedVariant.value) return selectedVariant.value.stock ?? 0
+  if (hasVariants.value) return 0 // no selection yet
+  return product.value?.stock ?? 0
+})
+
+// True only when the customer can actually add to cart
+const canAddToCart = computed(() => {
+  if (hasVariants.value) return !!selectedVariant.value && effectiveStock.value > 0
+  return inStock.value
+})
+
+// Clamp quantity when the selected variant changes
+watch(selectedVariant, () => {
+  quantity.value = 1
+})
+
 const inWishlist = computed(() =>
   product.value ? wishlistStore.isInWishlist(product.value.id) : false,
 )
 
+// Price: variants all share the product price in this model
 const effectivePrice = computed(
-  () => selectedVariant.value?.price ?? product.value?.price ?? 0,
+  () => Number(selectedVariant.value?.price ?? product.value?.price ?? 0),
 )
 
 async function handleAddToCart() {
-  if (!product.value || !inStock.value) return
+  if (!product.value || !canAddToCart.value) return
   addingToCart.value = true
   await nextTick()
 
@@ -151,39 +185,67 @@ function formatDate(d: string) {
           <!-- Stock status -->
           <div class="flex items-center gap-2">
             <div
-              class="h-2 w-2 rounded-full"
-              :class="inStock ? 'bg-emerald-500' : 'bg-zinc-300'"
+              class="h-2 w-2 rounded-full transition-colors"
+              :class="canAddToCart ? 'bg-emerald-500' : hasVariants && !selectedVariant ? 'bg-zinc-300' : 'bg-zinc-300'"
             />
-            <span
-              class="text-sm font-medium"
-              :class="inStock ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400'"
-            >
-              {{ inStock ? `${t('common.inStock')} (${product.stock} left)` : t('common.outOfStock') }}
+            <span class="text-sm font-medium" :class="canAddToCart ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400'">
+              <template v-if="hasVariants && !selectedVariant">
+                Select {{ variantOptionName }} to check availability
+              </template>
+              <template v-else-if="hasVariants && selectedVariant">
+                {{ effectiveStock > 0 ? `${t('common.inStock')} (${effectiveStock} left)` : t('common.outOfStock') }}
+              </template>
+              <template v-else>
+                {{ inStock ? `${t('common.inStock')} (${product.stock} left)` : t('common.outOfStock') }}
+              </template>
             </span>
           </div>
 
           <USeparator />
 
-          <!-- Variants -->
-          <div v-if="variants && variants.length > 0" class="space-y-3">
-            <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-              {{ t('product.variant') }}
-            </label>
+          <!-- Variant option selector (size, color, storage, etc.) -->
+          <div v-if="hasVariants" class="space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                {{ variantOptionName }}
+                <span v-if="!selectedVariant" class="ml-1.5 text-xs font-normal text-zinc-400">— required</span>
+              </label>
+              <button
+                v-if="selectedVariant"
+                class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 underline"
+                @click="selectedVariant = null"
+              >
+                Clear
+              </button>
+            </div>
             <div class="flex flex-wrap gap-2">
               <button
                 v-for="v in variants"
                 :key="v.id"
-                class="rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all"
-                :class="
+                class="relative rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                :class="[
                   selectedVariant?.id === v.id
-                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-950 text-primary-700'
-                    : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-400'
-                "
+                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-950 text-primary-700 dark:text-primary-300'
+                    : v.stock === 0
+                      ? 'border-zinc-100 dark:border-zinc-800 text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
+                      : 'border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-400 dark:hover:border-zinc-500'
+                ]"
                 :disabled="v.stock === 0"
+                :aria-pressed="selectedVariant?.id === v.id"
                 @click="selectedVariant = v"
               >
-                {{ Object.values(v.attributes).join(' / ') }}
-                <span v-if="v.stock === 0" class="ml-1 text-zinc-400">{{ t('product.soldOut') }}</span>
+                <!-- Sold-out diagonal strike through -->
+                <span
+                  v-if="v.stock === 0"
+                  class="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden rounded-md"
+                  aria-hidden="true"
+                >
+                  <svg class="absolute inset-0 w-full h-full" aria-hidden="true">
+                    <line x1="0" y1="100%" x2="100%" y2="0" stroke="currentColor" stroke-width="1" class="text-zinc-200 dark:text-zinc-700" />
+                  </svg>
+                </span>
+                {{ variantLabel(v) }}
+                <span v-if="v.stock === 0" class="sr-only">— sold out</span>
               </button>
             </div>
           </div>
@@ -191,17 +253,22 @@ function formatDate(d: string) {
           <!-- Quantity + Add to Cart -->
           <div class="flex items-center gap-3">
             <!-- Quantity -->
-            <div class="flex items-center rounded-xl border border-zinc-200 dark:border-zinc-700">
+            <div
+              class="flex items-center rounded-xl border transition-colors"
+              :class="canAddToCart ? 'border-zinc-200 dark:border-zinc-700' : 'border-zinc-100 dark:border-zinc-800 opacity-50'"
+            >
               <button
-                class="flex h-11 w-11 items-center justify-center rounded-l-xl text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                class="flex h-11 w-11 items-center justify-center rounded-l-xl text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:pointer-events-none"
+                :disabled="!canAddToCart"
                 @click="quantity = Math.max(1, quantity - 1)"
               >
                 <UIcon name="heroicons:minus" class="size-4" />
               </button>
               <span class="w-10 text-center font-semibold tabular-nums">{{ quantity }}</span>
               <button
-                class="flex h-11 w-11 items-center justify-center rounded-r-xl text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                @click="quantity = Math.min(product.stock, quantity + 1)"
+                class="flex h-11 w-11 items-center justify-center rounded-r-xl text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:pointer-events-none"
+                :disabled="!canAddToCart || quantity >= effectiveStock"
+                @click="quantity = Math.min(effectiveStock, quantity + 1)"
               >
                 <UIcon name="heroicons:plus" class="size-4" />
               </button>
@@ -211,12 +278,20 @@ function formatDate(d: string) {
             <UButton
               class="flex-1 shadow-lg shadow-primary-500/20"
               size="lg"
-              :disabled="!inStock"
+              :disabled="!canAddToCart"
               :loading="addingToCart"
               @click="handleAddToCart"
             >
               <UIcon name="heroicons:shopping-bag" class="size-5" />
-              {{ inStock ? t('common.addToCart') : t('common.outOfStock') }}
+              <template v-if="hasVariants && !selectedVariant">
+                Select {{ variantOptionName }}
+              </template>
+              <template v-else-if="canAddToCart">
+                {{ t('common.addToCart') }}
+              </template>
+              <template v-else>
+                {{ t('common.outOfStock') }}
+              </template>
             </UButton>
 
             <!-- Wishlist -->
@@ -238,6 +313,7 @@ function formatDate(d: string) {
             variant="outline"
             block
             size="lg"
+            :disabled="!canAddToCart"
             @click="handleAddToCart"
           >
             {{ t('common.buyNow') }}

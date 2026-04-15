@@ -7,6 +7,13 @@ import type { Database } from '~/types/database.types'
 type Product = Database['public']['Tables']['products']['Row']
 type Category = Database['public']['Tables']['categories']['Row']
 
+// A single option group (e.g., Size, Color, Storage).
+// Each value carries its own stock count.
+export interface ProductVariantOption {
+  optionName: string  // e.g. "Size", "Color", "Storage"
+  values: { value: string; stock: number }[]
+}
+
 export interface ProductFormState {
   sku: string
   price: string
@@ -23,6 +30,8 @@ export interface ProductFormState {
     uz: { title: string; description: string; slug: string }
     ru: { title: string; description: string; slug: string }
   }
+  // Variant option — empty values array means no variants (use global stock)
+  variantOption: ProductVariantOption
 }
 
 export function emptyForm(): ProductFormState {
@@ -42,10 +51,24 @@ export function emptyForm(): ProductFormState {
       uz: { title: '', description: '', slug: '' },
       ru: { title: '', description: '', slug: '' },
     },
+    variantOption: { optionName: 'Size', values: [] },
   }
 }
 
-export function productToForm(p: Product): ProductFormState {
+export function productToForm(p: Product, variantRows: { attributes: Record<string, string>; stock: number }[] = []): ProductFormState {
+  // Reconstruct option from existing variants
+  let variantOption: ProductVariantOption = { optionName: 'Size', values: [] }
+  if (variantRows.length > 0) {
+    const firstKey = Object.keys(variantRows[0]!.attributes)[0] ?? 'Size'
+    variantOption = {
+      optionName: firstKey,
+      values: variantRows.map(v => ({
+        value: v.attributes[firstKey] ?? '',
+        stock: v.stock,
+      })),
+    }
+  }
+
   return {
     sku: p.sku ?? '',
     price: String(p.price ?? ''),
@@ -74,19 +97,25 @@ export function productToForm(p: Product): ProductFormState {
         slug: p.translations?.ru?.slug ?? '',
       },
     },
+    variantOption,
   }
 }
 
 export function formToPayload(f: ProductFormState) {
   const price = parseFloat(f.price)
   const comparePrice = f.compare_price.trim() ? parseFloat(f.compare_price) : null
-  const stock = parseInt(f.stock, 10)
+
+  // If variant values exist, stock = sum of variant stocks. Otherwise use the field.
+  const variantTotal = f.variantOption.values.reduce((s, v) => s + (v.stock || 0), 0)
+  const stock = f.variantOption.values.length > 0
+    ? variantTotal
+    : parseInt(f.stock, 10) || 0
 
   return {
     sku: f.sku.trim(),
     price: isNaN(price) ? 0 : price,
     compare_price: comparePrice != null && !isNaN(comparePrice) ? comparePrice : null,
-    stock: isNaN(stock) ? 0 : stock,
+    stock,
     images: f.images.map((u) => u.trim()).filter(Boolean),
     category_id: (f.category_id && f.category_id !== 'none') ? f.category_id : null,
     brand: f.brand.trim() || null,
@@ -94,6 +123,36 @@ export function formToPayload(f: ProductFormState) {
     is_active: f.is_active,
     is_featured: f.is_featured,
     translations: f.translations,
+  }
+}
+
+// ── Save variant rows for a product ───────────────────────────────────────────
+// Deletes all existing variants then inserts fresh ones.
+// price on each variant mirrors the product price (no per-variant pricing yet).
+export async function saveVariants(
+  supabase: ReturnType<typeof useSupabase>,
+  productId: string,
+  productSku: string,
+  productPrice: number,
+  option: ProductVariantOption,
+) {
+  // Always wipe existing variants first for a clean replace
+  await supabase.from('product_variants').delete().eq('product_id', productId)
+
+  if (!option.values.length) return
+
+  const rows = option.values
+    .filter(v => v.value.trim())
+    .map(v => ({
+      product_id: productId,
+      sku: `${productSku}-${v.value.trim().toUpperCase().replace(/\s+/g, '-')}`,
+      price: productPrice,
+      stock: v.stock,
+      attributes: { [option.optionName]: v.value.trim() },
+    }))
+
+  if (rows.length) {
+    await supabase.from('product_variants').insert(rows)
   }
 }
 

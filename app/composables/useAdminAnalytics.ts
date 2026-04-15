@@ -22,22 +22,27 @@ export const useAdminAnalytics = (period: Ref<Period>) => {
       prevSince.setDate(prevSince.getDate() - prevDays)
       const prevSinceIso = prevSince.toISOString()
 
-      const [ordersRes, prevOrdersRes, statusRes, itemsRes] = await Promise.all([
-        supabase.from('orders').select('total, created_at, status').eq('payment_status', 'paid').gte('created_at', sinceIso),
+      const [ordersRes, prevOrdersRes, statusRes] = await Promise.all([
+        supabase.from('orders').select('id, total, created_at, status').eq('payment_status', 'paid').gte('created_at', sinceIso),
         supabase.from('orders').select('total').eq('payment_status', 'paid').gte('created_at', prevSinceIso).lt('created_at', sinceIso),
         supabase.from('orders').select('status').gte('created_at', sinceIso),
-        supabase.from('order_items').select('title, image, price, quantity').gte('created_at', sinceIso),
       ])
 
-      type OrderRow = { total: number; created_at: string; status: string }
-      type PrevRow  = { total: number }
-      type StatusRow = { status: string }
-      type ItemRow  = { title: string; image: string | null; price: number; quantity: number }
+      // Fetch order_items for paid orders in the period (order_items has no created_at column)
+      const paidOrderIds = (ordersRes.data ?? []).map((o: any) => o.id)
+      const itemsRes = paidOrderIds.length
+        ? await supabase.from('order_items').select('title, image, price, quantity').in('order_id', paidOrderIds)
+        : { data: [], error: null }
 
-      const orders    = (ordersRes.data ?? []) as OrderRow[]
+      type OrderRow  = { id: string; total: number | string; created_at: string; status: string }
+      type PrevRow   = { total: number | string }
+      type StatusRow = { status: string }
+      type ItemRow   = { title: string; image: string | null; price: number | string; quantity: number | string }
+
+      const orders     = (ordersRes.data ?? []) as OrderRow[]
       const prevOrders = (prevOrdersRes.data ?? []) as PrevRow[]
-      const statuses  = (statusRes.data ?? []) as StatusRow[]
-      const items     = (itemsRes.data ?? []) as ItemRow[]
+      const statuses   = (statusRes.data ?? []) as StatusRow[]
+      const items      = (itemsRes.data ?? []) as ItemRow[]
 
       // ── Revenue chart (group by day) ────────────────────────────────────────
       const byDay: Record<string, number> = {}
@@ -48,13 +53,13 @@ export const useAdminAnalytics = (period: Ref<Period>) => {
       }
       for (const order of orders) {
         const day = order.created_at.slice(0, 10)
-        if (day in byDay) byDay[day] = (byDay[day] ?? 0) + order.total
+        if (day in byDay) byDay[day] = (byDay[day] ?? 0) + Number(order.total)
       }
       const revenueChart = Object.entries(byDay).map(([date, revenue]) => ({ date, revenue }))
 
       // ── Period totals ───────────────────────────────────────────────────────
-      const currentRevenue = orders.reduce((s, o) => s + o.total, 0)
-      const prevRevenue = prevOrders.reduce((s, o) => s + o.total, 0)
+      const currentRevenue = orders.reduce((s, o) => s + Number(o.total), 0)
+      const prevRevenue = prevOrders.reduce((s, o) => s + Number(o.total), 0)
       const currentOrders = orders.length
       const prevOrderCount = prevOrders.length
 
@@ -70,8 +75,8 @@ export const useAdminAnalytics = (period: Ref<Period>) => {
         if (!productMap[item.title]) {
           productMap[item.title] = { title: item.title, image: item.image, revenue: 0, units: 0 }
         }
-        productMap[item.title]!.revenue += item.price * item.quantity
-        productMap[item.title]!.units += item.quantity
+        productMap[item.title]!.revenue += Number(item.price) * Number(item.quantity)
+        productMap[item.title]!.units += Number(item.quantity)
       }
       const topProducts = Object.values(productMap)
         .sort((a, b) => b.revenue - a.revenue)

@@ -39,7 +39,7 @@ export const useAdminStats = () => {
           .gte('created_at', thirtyDaysIso),
       ])
 
-      const revenue30d = (revenueRes.data ?? []).reduce((sum, o) => sum + o.total, 0)
+      const revenue30d = (revenueRes.data ?? []).reduce((sum, o) => sum + Number(o.total), 0)
 
       return {
         totalOrders: ordersRes.count ?? 0,
@@ -111,7 +111,7 @@ export const useAdminStats = () => {
       }
       for (const order of data ?? []) {
         const day = order.created_at.slice(0, 10)
-        if (day in byDay) byDay[day] = (byDay[day] ?? 0) + order.total
+        if (day in byDay) byDay[day] = (byDay[day] ?? 0) + Number(order.total)
       }
 
       return Object.entries(byDay).map(([date, revenue]) => ({ date, revenue }))
